@@ -69,7 +69,7 @@ class Patient(db.Model):
             'location': self.location,
             'gender': self.gender,
             'about': self.about,
-            'avatar': "http://127.0.0.1:5000/static/" + self.avatar,
+            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d')
         }
 
@@ -134,7 +134,7 @@ class Doctor(db.Model):
             'gender': self.gender,
             'x_y': self.x_y,
             'about': self.about,
-            'avatar': "http://127.0.0.1:5000/static/" + self.avatar,
+            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
             "specialization": [specialization.format() for specialization in
@@ -334,7 +334,7 @@ class Session(db.Model):
             'comment': self.comment,
             'diagnosis': self.diagnosis,
             'medicines': self.medicines,
-            'files': (self.files or []) and ["http://127.0.0.1:5000/static/" + file for file in self.files.split(", ")],
+            'files': (self.files or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in self.files.split(", ")],
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id
