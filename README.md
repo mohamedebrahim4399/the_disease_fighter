@@ -68,7 +68,7 @@
 
 ### <span id="register">POST/register</span>
 - create a new account
-- ``` http://127.0.0.1:5000/register ```
+- ``` https://thediseasefighter.herokuapp.com/register ```
 - The json body  <pre>{
     "name": "Doe",
     "email": "doe@mail.com",
@@ -85,7 +85,7 @@
 ---
 ### <span id="login">POST/login</span>
 - login your account
--  ``` http://127.0.0.1:5000/login ```
+-  ``` https://thediseasefighter.herokuapp.com/login ```
 - The json body  <pre>{ 
     "email": "doe@mail.com",
     "password": "12345"
@@ -100,7 +100,7 @@
 ---
 ### <span id="logout">GET/logout</span>
 - logout your account
-- ``` http://127.0.0.1:5000/logout ```
+- ``` https://thediseasefighter.herokuapp.com/logout ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 
 ```json
@@ -113,7 +113,7 @@
 ---
 ### <span id="password">PATCH/password</span>
 -update password 
-- ``` http://127.0.0.1:5000/password ```
+- ``` https://thediseasefighter.herokuapp.com/password ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "current_password": "12345",
@@ -131,7 +131,7 @@
 ---
 ### <span id="user_update">PATCH/user</span>
 - Update Current User Info
-- ``` http://127.0.0.1:5000/user ```
+- ``` https://thediseasefighter.herokuapp.com/user ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "name": "Doe Doe",
@@ -152,7 +152,7 @@
 ---
 ### <span id="user">PATCH/avatar</span>
 - Update Current User Avatar
-- ``` http://127.0.0.1:5000/avatar ```
+- ``` https://thediseasefighter.herokuapp.com/avatar ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - in the body => file with key file
 
@@ -167,14 +167,14 @@
 ---
 ### <span id="user_avatar">GET/user</span>
 - Get Current User Info
-- ``` http://127.0.0.1:5000/user ```
+- ``` https://thediseasefighter.herokuapp.com/user ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 
 ```json
 {
     "current_user": {
         "about": "Hello! I'm Doe ",
-        "avatar": "http://127.0.0.1:5000/static/imag.png",
+        "avatar": "https://thediseasefighter.herokuapp.com/static/imag.png",
         "dob": "1995-05-05",
         "email": "doe@mail.com",
         "gender": "mail",
@@ -190,7 +190,7 @@
 ---
 ### <span id="create_notification">POST/notifications</span>
 - Create Patient's Notification
-- ``` http://127.0.0.1:5000/notifications ```
+- ``` https://thediseasefighter.herokuapp.com/notifications ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "doctor_name": "Mohamed",
@@ -205,7 +205,7 @@
 ---
 ### <span id="show_notifications">GET/notifications</span>
 - Show Patient's Notifications
-- ``` http://127.0.0.1:5000/notifications ```
+- ``` https://thediseasefighter.herokuapp.com/notifications ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 
 ```json
@@ -227,7 +227,7 @@
 ---
 ### <span id="delete_notifications">DELETE/notifications/{notification_id}</span>
 - Delete Patient's Notifications
-- ``` http://127.0.0.1:5000/notifications/4 ```
+- ``` https://thediseasefighter.herokuapp.com/notifications/4 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -238,7 +238,7 @@
 ---
 ### <span id="Update_notifications">PATCH/notifications/{notification_id}</span>
 - Update Patient's Notifications
--   ``` http://127.0.0.1:5000/notifications/6 ```
+-   ``` https://thediseasefighter.herokuapp.com/notifications/6 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "seen": true
@@ -253,7 +253,7 @@
 ---
 ### <span id="get_doctors">GET/doctors</span>
 - Get All Doctors
--   ``` http://127.0.0.1:5000/doctors ```
+-   ``` https://thediseasefighter.herokuapp.com/doctors ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -338,7 +338,7 @@ All doctor
                     "start_time": "04:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt, Cairo, next to Cairo University",
             "dob": "1980-06-12",
             "email": "mohamed@mail.com",
@@ -387,7 +387,7 @@ All doctor
                     "start_time": "06:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Saudi Arabia",
             "dob": "1985-06-08",
             "email": "ahmed@mail.com",
@@ -427,7 +427,7 @@ All doctor
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt, Alexandria",
             "dob": "1980-06-12",
             "email": "peter@mail.com",
@@ -474,7 +474,7 @@ All doctor
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt",
             "dob": "1990-06-06",
             "email": "osama@mail.com",
@@ -514,7 +514,7 @@ All doctor
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "USA",
             "dob": "1980-06-12",
             "email": "jessica@mail.com",
@@ -547,7 +547,7 @@ All doctor
                     "start_time": "02:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "USA",
             "dob": "1995-06-12",
             "email": "jean@mail.com",
@@ -583,7 +583,7 @@ All doctor
 ---
 ### <span id="get_one_doctors">GET/doctors/{doctor_id}</span>
 - Get One Doctor
--   ``` http://127.0.0.1:5000/doctors/1 ```
+-   ``` https://thediseasefighter.herokuapp.com/doctors/1 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -610,7 +610,7 @@ One Doctor
                 "start_time": "04:00 pm"
             }
         ],
-        "avatar": "http://127.0.0.1:5000/static/default.png",
+        "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
         "clinic_location": "Egypt, Cairo, next to Cairo University",
         "dob": "1980-06-12",
         "email": "mohamed@mail.com",
@@ -642,7 +642,7 @@ One Doctor
 ---
 ### <span id="Get_top_doctors">GET/doctors/top</span>
 - Get Top Doctors
--   ``` http://127.0.0.1:5000/doctors/top ```
+-   ``` https://thediseasefighter.herokuapp.com/doctors/top ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -721,7 +721,7 @@ Top Doctors
                     "start_time": "02:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "USA",
             "dob": "1995-06-12",
             "email": "jean@mail.com",
@@ -763,7 +763,7 @@ Top Doctors
                     "start_time": "04:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt, Cairo, next to Cairo University",
             "dob": "1980-06-12",
             "email": "mohamed@mail.com",
@@ -812,7 +812,7 @@ Top Doctors
                     "start_time": "06:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Saudi Arabia",
             "dob": "1985-06-08",
             "email": "ahmed@mail.com",
@@ -852,7 +852,7 @@ Top Doctors
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt, Alexandria",
             "dob": "1980-06-12",
             "email": "peter@mail.com",
@@ -899,7 +899,7 @@ Top Doctors
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt",
             "dob": "1990-06-06",
             "email": "osama@mail.com",
@@ -939,7 +939,7 @@ Top Doctors
                     "start_time": "05:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "USA",
             "dob": "1980-06-12",
             "email": "jessica@mail.com",
@@ -971,7 +971,7 @@ Top Doctors
 ---
 ### <span id="create_doctors_dates">POST/dates</span> 
 - Create Doctor's Dates
--   ``` http://127.0.0.1:5000/doctors/dates ```
+-   ``` https://thediseasefighter.herokuapp.com/doctors/dates ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "start_time": "01:00 pm",
@@ -988,7 +988,7 @@ Top Doctors
 ---
 ### <span id="Get_doctors_dates">GET/doctors/{doctor_id}/dates</span>
 - Get Doctor's Dates
-- ``` http://127.0.0.1:5000/doctors/12/dates ```
+- ``` https://thediseasefighter.herokuapp.com/doctors/12/dates ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary> Doctor's Dates
@@ -1178,7 +1178,7 @@ Top Doctors
 ---
 ### <span id="update_doctors_date">PATCH/doctors/dates/{date_id}</span>
 - Update Doctor's Date
-- ``` http://127.0.0.1:5000/doctors/dates/{date_id} ```
+- ``` https://thediseasefighter.herokuapp.com/doctors/dates/{date_id} ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "start_time": "01:00 pm",
@@ -1196,7 +1196,7 @@ Top Doctors
 ---
 ### <span id="delete_doctors_date">DELETE/doctors/{doctor_id}/dates</span>
 - Delete Doctor's Date
-- ``` http://127.0.0.1:5000/doctors/12/dates ```
+- ``` https://thediseasefighter.herokuapp.com/doctors/12/dates ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 
 
@@ -1210,7 +1210,7 @@ Top Doctors
 ---
 ### <span id="Get_available_days">GET/doctors/{doctor_id}/days</span>
 - Get Available Days
-- ``` http://127.0.0.1:5000/doctors/1/days ```
+- ``` https://thediseasefighter.herokuapp.com/doctors/1/days ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1231,7 +1231,7 @@ Top Doctors
 ---
 ### <span id="Get_one_day">GET/doctors/days/{day_id}</span>
 - Get One Doctor's Day Info
-- ``` http://127.0.0.1:5000/doctors/days/13 ```
+- ``` https://thediseasefighter.herokuapp.com/doctors/days/13 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -1347,7 +1347,7 @@ Day Info
 ---
  ### <span id="get_specializations">GET/specializations</span>
 - Get All Specializations
-- ``` http://127.0.0.1:5000/specializations ```
+- ``` https://thediseasefighter.herokuapp.com/specializations ```
 <details>
 <summary>
 all specializations 
@@ -1421,7 +1421,7 @@ all specializations
 ---
 ### <span id="get_doctors_in_Specialization">GET/specializations/{specialization_id}/doctors</span>
 - Get All Doctors in a Specialization
-- ``` http://127.0.0.1:5000/specializations/1/doctors ```
+- ``` https://thediseasefighter.herokuapp.com/specializations/1/doctors ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -1449,7 +1449,7 @@ Doctors in a Specialization
                     "start_time": "01:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "Egypt, Cairo, next to Cairo University",
             "dob": "1980-06-12",
             "email": "mohamed@mail.com",
@@ -1484,7 +1484,7 @@ Doctors in a Specialization
                     "start_time": "02:00 pm"
                 }
             ],
-            "avatar": "http://127.0.0.1:5000/static/default.png",
+            "avatar": "https://thediseasefighter.herokuapp.com/static/default.png",
             "clinic_location": "USA",
             "dob": "1995-06-12",
             "email": "jean@mail.com",
@@ -1519,7 +1519,7 @@ Doctors in a Specialization
 ---
 ### <span id="get_sessions">GET/sessions</span>
 - Get all Sessions for Logged User(Patient,Doctor)
-- ``` http://127.0.0.1:5000/sessions ```
+- ``` https://thediseasefighter.herokuapp.com/sessions ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -1571,8 +1571,8 @@ all Sessions
             "diagnosis": "You are just exhausted",
             "doctor_id": 6,
             "files": [
-                "http://127.0.0.1:5000/static/file1.jpg",
-                "http://127.0.0.1:5000/static/file2.jpg"
+                "https://thediseasefighter.herokuapp.com/static/file1.jpg",
+                "https://thediseasefighter.herokuapp.com/static/file2.jpg"
             ],
             "gender": "Male",
             "id": 2,
@@ -1590,7 +1590,7 @@ all Sessions
             "diagnosis": "You are Great.",
             "doctor_id": 3,
             "files": [
-                "http://127.0.0.1:5000/static/file1.jpg"
+                "https://thediseasefighter.herokuapp.com/static/file1.jpg"
             ],
             "gender": "Male",
             "id": 4,
@@ -1610,7 +1610,7 @@ all Sessions
 ---
 ### <span id="get__one_session">GET/sessions/{session_id}</span>
 - Get One Session for Logged User(Patient,Doctor)
-- ``` http://127.0.0.1:5000/sessions/3 ```
+- ``` https://thediseasefighter.herokuapp.com/sessions/3 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1637,7 +1637,7 @@ all Sessions
 ---
 ### <span id="get_filter_sessions">GET/sessions/filter?date=</span>
 - Filter Doctor Sessions by Date
-- ``` http://127.0.0.1:5000/sessions/filter?date=4/4/2021 ```
+- ``` https://thediseasefighter.herokuapp.com/sessions/filter?date=4/4/2021 ```
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1668,7 +1668,7 @@ all Sessions
 ---
 ### <span id="update_session">PATCH/sessions/{session_id}</span>
 - Update Session of User(Patient,Doctor)
-- ``` http://127.0.0.1:5000/sessions/6 ```
+- ``` https://thediseasefighter.herokuapp.com/sessions/6 ```
   - if you want update the day or time or am-pm you should send period_id and previous_period_id in the body
   - if you want to change the day when you send the new day in body you should send period_id = previous_period_id for desired time 
 - The json body  <pre>{ 
@@ -1686,7 +1686,7 @@ all Sessions
 ---
 ### <span id="delete_sessions">DELETE/sessions/{session_id}</span>
 - For deleting an appointment
-- ` http://127.0.0.1:5000/sessions/7 `
+- ` https://thediseasefighter.herokuapp.com/sessions/7 `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1697,7 +1697,7 @@ all Sessions
 ---
 ### <span id="create_session">POST/doctors/{doctor_id}/sessions</span>
 - Create  a Patient Session
-- ` http://127.0.0.1:5000/doctors/4/sessions `
+- ` https://thediseasefighter.herokuapp.com/doctors/4/sessions `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "day":"Wednesday",
@@ -1719,7 +1719,7 @@ all Sessions
 ---
 ### <span id="upload_files">PATCH/sessions{session_id}/files</span>
 - Upload to the Patient's Diagnostic Files
-- ` http://127.0.0.1:5000/sessions/7/files `
+- ` https://thediseasefighter.herokuapp.com/sessions/7/files `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - in the body => file with key file
 
@@ -1733,7 +1733,7 @@ all Sessions
 ---
 ### <span id="post_favorite">POST/doctors/{doctor_id}/favorite</span>
 - Put Doctor in Favorite List
-- ` http://127.0.0.1:5000/doctors/1/favorite `
+- ` https://thediseasefighter.herokuapp.com/doctors/1/favorite `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "is_in_favorite_list":true
@@ -1747,7 +1747,7 @@ all Sessions
 ---
 ### <span id="get_doctor_from_favorite_list">GET/favorites</span>
 - Get all doctors from the favorite list
-- ` http://127.0.0.1:5000/favorites `
+- ` https://thediseasefighter.herokuapp.com/favorites `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 <details>
 <summary>
@@ -1793,7 +1793,7 @@ doctors in the favorite
 ---
 ### <span id="delete_doctor_from_favorite_list">DELETE/doctors/{doctor_id}/favorite</span>
 - Delete a doctor from the favorite list
-- ` http://127.0.0.1:5000/doctors/1/favorite `
+- ` https://thediseasefighter.herokuapp.com/doctors/1/favorite `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1805,7 +1805,7 @@ doctors in the favorite
 ---
 ### <span id="create_review">POST/session/{session_id}/reviews</span>
 - Create a Review 
-- ` http://127.0.0.1:5000/sessions/3/reviews `
+- ` https://thediseasefighter.herokuapp.com/sessions/3/reviews `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - The json body  <pre>{ 
     "comment":"good doctor",
@@ -1821,7 +1821,7 @@ doctors in the favorite
 ---
 ### <span id="git_doctor_review">GET/doctors/{doctor_id}/reviews</span>
 - Get Doctor Reviews
-- ` http://127.0.0.1:5000/doctors/6/reviews `
+- ` https://thediseasefighter.herokuapp.com/doctors/6/reviews `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 ```json
 {
@@ -1842,7 +1842,7 @@ doctors in the favorite
 ---
 ### <span id="brain_model">POST/model/brain</span>
 - Brain model for image analysis
-- ` http://127.0.0.1:5000/model/brain `
+- ` https://thediseasefighter.herokuapp.com/model/brain `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - You should send the image in the body request with the name of "file"
 
@@ -1860,7 +1860,7 @@ doctors in the favorite
 ---
 ### <span id="covid19_model">POST/model/covid19</span>
 - Covid19 model for image analysis
-- ` http://127.0.0.1:5000/model/covid19 `
+- ` https://thediseasefighter.herokuapp.com/model/covid19 `
 - in header request <pre>Authorization:Bearer <access_token></pre>
 - You should send the image in the body request with the name of "file"
 
