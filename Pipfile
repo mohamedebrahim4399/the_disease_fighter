@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+psycopg2 = "*"
+click = "==7.1.2"
+greenlet = "==1.0.0"
+gunicorn = "==20.1.0"
+importlib-metadata = "==3.10.1"
+itsdangerous = "==1.1.0"
+typing-extensions = "==3.7.4.3"
+zipp = "==3.4.1"
+Flask = "==1.1.2"
+Flask-SQLAlchemy = "==2.5.1"
+Jinja2 = "==2.11.3"
+MarkupSafe = "==1.1.1"
+SQLAlchemy = "==1.4.8"
+Werkzeug = "==1.0.1"
+flask-jwt-extended = "*"
+flask-cors = "*"
+python-dateutil = "*"
+requests = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
