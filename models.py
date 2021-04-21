@@ -1,8 +1,7 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
 
-database_name = "api"
-database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", database_name)
+database_path = "postgresql://yfvioxhvworigc:62e6f98b0e28e8ee14b06b5ec0ceba40b125574c840eef171e5f749c75b6be1c@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/dad9fi4volnb19"
 
 db = SQLAlchemy()
 
