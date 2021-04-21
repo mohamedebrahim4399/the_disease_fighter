@@ -42,7 +42,7 @@ setup_db(app)
 CORS(app)
 
 # The url of the client model and the url of the server.
-base_url = "http://127.0.0.1:5050/"
+base_url = "https://thediseasefighter.herokuapp.com/"
 model_urls = []
 
 
@@ -1222,7 +1222,19 @@ def get_sessions():
 @login_required
 def get_one_session(session_id):
     try:
-        current_session = Session.query.get(session_id)
+        current_session = ''
+        if session['is_doctor']:
+            current_session = Session.query.filter_by(id = session_id, doctor_id = session['id']).first()
+        else:
+            current_session = Session.query.filter_by(id = session_id, patient_id = session['id']).first()
+
+        if current_session is None or current_session == '':
+            return jsonify({
+                'message': "This session is not for you.",
+                'error': 403,
+                'success': False
+            }), 403
+
         return jsonify({
             'session': current_session.format(),
             'success': True
