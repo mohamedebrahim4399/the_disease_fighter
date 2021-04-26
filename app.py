@@ -42,7 +42,7 @@ jwt = JWTManager(app)
 setup_db(app)
 
 # Set up CORS
-CORS(app)
+CORS(app, supports_credentials=True)
 
 # The url of the client model and the url of the server.
 base_url = "https://thediseasefighter.herokuapp.com/"
