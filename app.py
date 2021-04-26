@@ -28,6 +28,9 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'secretkeyfordevelopmentonly*fordevelopment'
 # app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this in your code!
+
+app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 
 # Set up upload image
