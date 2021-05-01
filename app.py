@@ -203,12 +203,12 @@ def login(register_data=None):
     user = patient or doctor
 
     if check_password_hash(user.password, data['password']):
-        app.config.update(
-            PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
-        )
         session.permanent = True
         session["id"] = user.id
         session["name"] = user.name
+        app.config.update(
+            PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
+        )
 
         if patient:
             session['is_doctor'] = False
@@ -232,17 +232,17 @@ def create_token(id, is_doctor):
 
 @app.route("/logout")
 def logout():
+    # To Make the expired Cookie
+    app.config.update(
+        PERMANENT_SESSION_LIFETIME=1
+    )
+
     if not session:
         return jsonify({
             "message": "You are not log in",
             "error": 401,
             "success": False
         }), 401
-
-    # To Make the expired Cookie
-    app.config.update(
-        PERMANENT_SESSION_LIFETIME=1
-    )
 
     session.clear()
     return jsonify({
