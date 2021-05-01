@@ -162,11 +162,6 @@ def login(register_data=None):
             "success": False
         }), 422
 
-    app.config.update(
-        PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
-    )
-
-
     # Redirect From Registration Page
     if register_data is not None:
         email, password, is_doctor = register_data
@@ -208,6 +203,9 @@ def login(register_data=None):
     user = patient or doctor
 
     if check_password_hash(user.password, data['password']):
+        app.config.update(
+            PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
+        )
         session.permanent = True
         session["id"] = user.id
         session["name"] = user.name
