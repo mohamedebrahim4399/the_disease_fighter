@@ -162,6 +162,11 @@ def login(register_data=None):
             "success": False
         }), 422
 
+    app.config.update(
+        PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
+    )
+
+
     # Redirect From Registration Page
     if register_data is not None:
         email, password, is_doctor = register_data
@@ -224,7 +229,7 @@ def create_token(id, is_doctor):
     }
     access_token = create_access_token(id, additional_claims=additional_claims)
 
-    return jsonify(access_token=access_token)
+    return jsonify(access_token=access_token, id_doctor=is_doctor)
 
 
 @app.route("/logout")
@@ -235,6 +240,11 @@ def logout():
             "error": 401,
             "success": False
         }), 401
+
+    # To Make the expired Cookie
+    app.config.update(
+        PERMANENT_SESSION_LIFETIME=1
+    )
 
     session.clear()
     return jsonify({
