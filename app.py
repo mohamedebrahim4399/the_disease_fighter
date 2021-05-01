@@ -227,7 +227,7 @@ def create_token(id, is_doctor):
     }
     access_token = create_access_token(id, additional_claims=additional_claims)
 
-    return jsonify(access_token=access_token, id_doctor=is_doctor)
+    return jsonify(access_token=access_token, is_doctor=is_doctor)
 
 
 @app.route("/logout")
