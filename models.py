@@ -2,7 +2,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 
 database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
-
+# database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
 db = SQLAlchemy()
 
 
@@ -124,7 +124,12 @@ class Doctor(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def format(self):
+    def format(self, patient_id):
+        print('asdfhsdklhflasdjhfaksldjfhalskdjfhsadlkjhfsalkdjfsaldkjfhasdf')
+        print(patient_id)
+        x = False
+        if Favorite.query.filter_by(doctor_id=self.id, patient_id=patient_id).first():
+            x = Favorite.query.filter_by(doctor_id=self.id, patient_id=patient_id).first().is_in_favorite_list
         return {
             'id': self.id,
             'name': self.name,
@@ -137,8 +142,7 @@ class Doctor(db.Model):
             'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
-            "specialization": [specialization.format() for specialization in
-                               Specialization.query.filter_by(id=self.spec_id)],
+            'is_in_favourite': x,
             'available_dates': [available_date.format() for available_date in
                                 Available_date.query.filter_by(doctor_id=self.id)]
 
@@ -334,7 +338,8 @@ class Session(db.Model):
             'comment': self.comment,
             'diagnosis': self.diagnosis,
             'medicines': self.medicines,
-            'files': (self.files or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in self.files.split(", ")],
+            'files': (self.files or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in
+                                             self.files.split(", ")],
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id

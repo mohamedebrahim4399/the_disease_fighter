@@ -133,7 +133,7 @@ def register():
             return login([doctor.email, doctor.password, True])
 
         except:
-            abort(409)
+            abort(422)
 
 
     elif is_doctor == False:
@@ -147,7 +147,7 @@ def register():
             return login([patient.email, patient.password, False])
 
         except:
-            abort(409)
+            abort(422)
 
     else:
         abort(400)
@@ -218,7 +218,11 @@ def login(register_data=None):
             return create_token(user.id, True)
 
     # Password is incorrect
-    abort(401)
+    return jsonify({
+        'message': 'The email or password is incorrect',
+        'error': 'unauthorized',
+        'success': False
+    }), 401
 
 
 def create_token(id, is_doctor):
@@ -227,7 +231,7 @@ def create_token(id, is_doctor):
     }
     access_token = create_access_token(id, additional_claims=additional_claims)
 
-    return jsonify(access_token=access_token, is_doctor=is_doctor)
+    return jsonify(access_token=access_token, is_doctor=is_doctor, success=True)
 
 
 @app.route("/logout")
@@ -258,15 +262,18 @@ def logout():
 @login_required
 def get_current_user():
     try:
+        format = ""
         current_user = ""
 
         if session['is_doctor']:  # this is a doctor
             current_user = Doctor.query.get(session['id'])
+            format=current_user.format(session['id'])
         else:
             current_user = Patient.query.get(session['id'])
+            format=current_user.format()
 
         return jsonify({
-            "current_user": current_user.format(),
+            "current_user": format,
             'success': True
         }), 200
     except:
@@ -508,7 +515,7 @@ def doctor_reviews(doctor_id):
         count = count + 1
 
         if len(avatars) <= 2:
-            avatars.append(data[1])
+            avatars.append(f"https://thediseasefighter.herokuapp.com/static/{data[1]}")
 
     if not count == 0:
         rates = int(stars / count)
@@ -539,10 +546,9 @@ def get_all_doctors():
                 "error": 403,
                 "success": True
             }), 403
-        specializations = Specialization.query.order_by('id').all()
         doctors = Doctor.query.order_by('id').all()
 
-        if len(doctors) == 0 or len(specializations) == 0:
+        if len(doctors) == 0 :
             return jsonify({
                 "message": "There's not any doctors",
                 "error": 404,
@@ -555,14 +561,12 @@ def get_all_doctors():
             reviews = doctor_reviews(doctor.id)
 
             doctor_obj = {}
-            doctor_obj.update(doctor.format())
+            doctor_obj.update(doctor.format(session['id']))
             doctor_obj.update(reviews)
             doctors_list.append(doctor_obj)
 
         return jsonify({
-            "Specializations": [specialization.format() for specialization in specializations],
             'doctors': doctors_list,
-            "total_specializations": len(specializations),
             "total_doctors": len(doctors),
             "success": True
         })
@@ -587,7 +591,7 @@ def get_one_doctor(doctor_id):
         reviews = doctor_reviews(doctor.id)
 
         doctor_obj = {}
-        doctor_obj.update(doctor.format())
+        doctor_obj.update(doctor.format(session['id']))
         doctor_obj.update(reviews)
 
         return jsonify({
@@ -610,8 +614,6 @@ def top_doctors():
                 "error": 403,
                 "success": False
             }), 403
-        specializations = Specialization.query.all()
-
         doctors = Doctor.query.order_by('id').all()
 
         doctor_list = []
@@ -619,7 +621,7 @@ def top_doctors():
         for doctor in doctors:
             reviews = doctor_reviews(doctor.id)
             doctor_obj = {}
-            doctor_obj.update(doctor.format())
+            doctor_obj.update(doctor.format(session['id']))
             doctor_obj.update(reviews)
             doctor_list.append(doctor_obj)
 
@@ -629,10 +631,8 @@ def top_doctors():
         top_doctors = doctor_list[:10]
 
         return jsonify({
-            "specializations": [specialization.format() for specialization in specializations],
             "top_doctors": top_doctors,
             "Success": True,
-            "total_specializations": len(specializations),
             "total_top_doctors": len(top_doctors)
         })
     except:
@@ -1235,9 +1235,9 @@ def get_one_session(session_id):
     try:
         current_session = ''
         if session['is_doctor']:
-            current_session = Session.query.filter_by(id = session_id, doctor_id = session['id']).first()
+            current_session = Session.query.filter_by(id=session_id, doctor_id=session['id']).first()
         else:
-            current_session = Session.query.filter_by(id = session_id, patient_id = session['id']).first()
+            current_session = Session.query.filter_by(id=session_id, patient_id=session['id']).first()
 
         if current_session is None or current_session == '':
             return jsonify({
