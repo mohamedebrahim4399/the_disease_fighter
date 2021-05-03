@@ -24,12 +24,9 @@ from flask_jwt_extended import (
 # create and configure the app
 app = Flask(__name__)
 
-# app.permanent_session_lifetime = timedelta(days=30)
-
 app.config['SECRET_KEY'] = 'secretkeyfordevelopmentonly*fordevelopment'
 # app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this in your code!
 
-app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 
@@ -60,22 +57,8 @@ def after_request(response):
     return response
 
 
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        claims = get_jwt()
-        if len(session) == 0:
-            return jsonify(massage="You should log in", error=401, success=False)
-        if session['id'] != claims['sub']:
-            return jsonify(massage="You should log in", error=401, success=False)
-        return f(*args, **kwargs)
-
-    return decorated
-
-
 @app.route('/')
 def index():
-    # session.clear()
     html = '''
     <div>
             <h1>API Documentation</h1>
@@ -109,7 +92,7 @@ def register():
     doctor = Doctor.query.filter_by(email=email).first()
     if patient or doctor:
         return jsonify({
-            "message": "This email exists",
+            "message": "This email already exists",
             "error": 409,
             "success": False
         }), 409
@@ -120,6 +103,7 @@ def register():
     about = data.get('about', None)
     avatar = data.get('avatar', "default.png")
     dob = data.get('dob', None)
+    x_y = data.get('x_y', None)
 
     if is_doctor == True:
         clinic_location = data.get('clinic_location')
@@ -127,7 +111,7 @@ def register():
 
         try:
             doctor = Doctor(name=name, email=email, password=password, phone=phone, about=about, gender=gender,
-                            avatar=avatar, dob=dob, clinic_location=clinic_location, spec_id=spec_id)
+                            avatar=avatar, dob=dob, clinic_location=clinic_location, spec_id=spec_id, x_y = x_y)
             doctor.insert()
 
             return login([doctor.email, doctor.password, True])
@@ -155,12 +139,6 @@ def register():
 
 @app.route('/login', methods=["POST"])
 def login(register_data=None):
-    if len(session) > 0:
-        return jsonify({
-            "message": "You can't open this route, because you're loging in now",
-            "error": 422,
-            "success": False
-        }), 422
 
     # Redirect From Registration Page
     if register_data is not None:
@@ -168,18 +146,9 @@ def login(register_data=None):
 
         if is_doctor:
             doctor = Doctor.query.filter_by(email=email).first()
-            session.permanent = True
-            session["id"] = doctor.id
-            session["name"] = doctor.name
-            session['is_doctor'] = True
             return create_token(doctor.id, True)
         else:
             patient = Patient.query.filter_by(email=email).first()
-            session.permanent = True
-            session["id"] = patient.id
-            session["name"] = patient.name
-            session['is_doctor'] = False
-
             return create_token(patient.id, False)
 
     # ----- From Login Page ------------------------------------
@@ -203,18 +172,9 @@ def login(register_data=None):
     user = patient or doctor
 
     if check_password_hash(user.password, data['password']):
-        session.permanent = True
-        session["id"] = user.id
-        session["name"] = user.name
-        app.config.update(
-            PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
-        )
-
         if patient:
-            session['is_doctor'] = False
             return create_token(user.id, False)
         else:
-            session['is_doctor'] = True
             return create_token(user.id, True)
 
     # Password is incorrect
@@ -234,24 +194,11 @@ def create_token(id, is_doctor):
     return jsonify(access_token=access_token, is_doctor=is_doctor, success=True)
 
 
+# Not Used after not
 @app.route("/logout")
 def logout():
-    # To Make the expired Cookie
-    app.config.update(
-        PERMANENT_SESSION_LIFETIME=1
-    )
-
-    if not session:
-        return jsonify({
-            "message": "You are not log in",
-            "error": 401,
-            "success": False
-        }), 401
-
-    session.clear()
-    return jsonify({
-        "message": "You are logged out successfully",
-        "success": True
+    return ({
+        "message": "Clear the access token from you to logout😊😊. Please don't use this route again😢"
     })
 
 
@@ -259,17 +206,17 @@ def logout():
 
 @app.route('/user')
 @jwt_required()
-@login_required
 def get_current_user():
+    claims = get_jwt()
     try:
         format = ""
         current_user = ""
 
-        if session['is_doctor']:  # this is a doctor
-            current_user = Doctor.query.get(session['id'])
-            format=current_user.format(session['id'])
+        if claims['is_doctor']:  # this is a doctor
+            current_user = Doctor.query.get(claims['sub'])
+            format=current_user.format(claims['sub'])
         else:
-            current_user = Patient.query.get(session['id'])
+            current_user = Patient.query.get(claims['sub'])
             format=current_user.format()
 
         return jsonify({
@@ -277,17 +224,13 @@ def get_current_user():
             'success': True
         }), 200
     except:
-        return jsonify({
-            "message": "You must log in",
-            "error": 401,
-            "success": False
-        }), 401
+        abort(422)
 
 
 @app.route('/user', methods=['PATCH'])
 @jwt_required()
-@login_required
 def update_current_user():
+    claims = get_jwt()
     data = request.get_json()
     try:
 
@@ -306,8 +249,8 @@ def update_current_user():
             }), 422
 
         current_user = ""
-        if session['is_doctor']:
-            doctor = Doctor.query.get(session['id'])
+        if claims['is_doctor']:
+            doctor = Doctor.query.get(claims['sub'])
             # To make necessary to enter the id of Specialization
             if doctor.spec_id is None:
                 if data.get('spec_id') is None:
@@ -320,7 +263,7 @@ def update_current_user():
             doctor.update(data)
 
         else:
-            patient = Patient.query.get(session['id'])
+            patient = Patient.query.get(claims['sub'])
             patient.update(data)
 
         return jsonify({
@@ -333,8 +276,8 @@ def update_current_user():
 
 @app.route('/password', methods=["PATCH"])
 @jwt_required()
-@login_required
 def update_password():
+    claims = get_jwt()
     data = request.get_json()
 
     if "new_password" not in data or "current_password" not in data:
@@ -346,10 +289,10 @@ def update_password():
 
     current_user = ""
 
-    if session['is_doctor']:
-        current_user = Doctor.query.get(session['id'])
+    if claims['is_doctor']:
+        current_user = Doctor.query.get(claims['sub'])
     else:
-        current_user = Patient.query.get(session['id'])
+        current_user = Patient.query.get(claims['sub'])
 
     if data['current_password'] == data['new_password']:
         return jsonify({
@@ -377,7 +320,6 @@ def update_password():
 # ________________ Notification ________________
 @app.route('/notifications')
 @jwt_required()
-@login_required
 def get_all_Notification():
     claims = get_jwt()
     try:
@@ -388,7 +330,7 @@ def get_all_Notification():
                 "success": False
             }), 403
 
-        notifications = Notification.query.filter_by(patient_id=session['id']).order_by('id').all()
+        notifications = Notification.query.filter_by(patient_id=claims['sub']).order_by('id').all()
 
         if len(notifications) == 0:
             return jsonify({
@@ -408,7 +350,6 @@ def get_all_Notification():
 
 @app.route('/notifications', methods=['POST'])
 @jwt_required()
-@login_required
 def create_notification():
     body = request.get_json()
     claims = get_jwt()
@@ -420,7 +361,7 @@ def create_notification():
                 "success": False
             }), 403
 
-        new_patient_id = session['id']
+        new_patient_id = claims['sub']
         new_seen = False
         time = body.get('time', None)
         doctor_name = body.get('doctor_name', None)
@@ -445,7 +386,6 @@ def create_notification():
 
 @app.route('/notifications/<int:notification_id>', methods=['DELETE'])
 @jwt_required()
-@login_required
 def delete_notification(notification_id):
     claims = get_jwt()
     try:
@@ -476,7 +416,6 @@ def delete_notification(notification_id):
 
 @app.route('/notifications/<int:notification_id>', methods=['PATCH'])
 @jwt_required()
-@login_required
 def update_notification(notification_id):
     body = request.get_json()
     claims = get_jwt()
@@ -535,8 +474,6 @@ def doctor_reviews(doctor_id):
 
 @app.route('/doctors')
 @jwt_required()
-@login_required
-@login_required
 def get_all_doctors():
     claims = get_jwt()
     try:
@@ -561,7 +498,7 @@ def get_all_doctors():
             reviews = doctor_reviews(doctor.id)
 
             doctor_obj = {}
-            doctor_obj.update(doctor.format(session['id']))
+            doctor_obj.update(doctor.format(claims['sub']))
             doctor_obj.update(reviews)
             doctors_list.append(doctor_obj)
 
@@ -576,7 +513,6 @@ def get_all_doctors():
 
 @app.route('/doctors/<int:doctor_id>')
 @jwt_required()
-@login_required
 def get_one_doctor(doctor_id):
     claims = get_jwt()
     try:
@@ -591,7 +527,7 @@ def get_one_doctor(doctor_id):
         reviews = doctor_reviews(doctor.id)
 
         doctor_obj = {}
-        doctor_obj.update(doctor.format(session['id']))
+        doctor_obj.update(doctor.format(claims['sub']))
         doctor_obj.update(reviews)
 
         return jsonify({
@@ -604,7 +540,6 @@ def get_one_doctor(doctor_id):
 
 @app.route('/doctors/top')
 @jwt_required()
-@login_required
 def top_doctors():
     claims = get_jwt()
     try:
@@ -621,7 +556,7 @@ def top_doctors():
         for doctor in doctors:
             reviews = doctor_reviews(doctor.id)
             doctor_obj = {}
-            doctor_obj.update(doctor.format(session['id']))
+            doctor_obj.update(doctor.format(claims['sub']))
             doctor_obj.update(reviews)
             doctor_list.append(doctor_obj)
 
@@ -789,7 +724,6 @@ def update_period(session_id, period_id, previous_period_id=None):
 
 @app.route('/doctors/<int:doctor_id>/days')
 @jwt_required()
-@login_required
 def get_doctor_days(doctor_id):
     claims = get_jwt()
     try:
@@ -841,7 +775,6 @@ def get_doctor_days(doctor_id):
 # -- periods of day
 @app.route('/doctors/days/<int:day_id>')
 @jwt_required()
-@login_required
 def get_periods(day_id):
     claims = get_jwt()
     try:
@@ -869,7 +802,6 @@ def get_periods(day_id):
 
 @app.route('/doctors/<int:doctor_id>/dates')
 @jwt_required()
-@login_required
 def get_all_dates(doctor_id):
     claims = get_jwt()
     try:
@@ -909,7 +841,6 @@ def get_all_dates(doctor_id):
 
 @app.route('/dates', methods=['POST'])
 @jwt_required()
-@login_required
 def create_date():
     claims = get_jwt()
     try:
@@ -942,7 +873,7 @@ def create_date():
             start_time=start_time,
             end_time=end_time,
             day=day.capitalize(),
-            doctor_id=session['id']
+            doctor_id=claims['sub']
         )
 
         date.insert()
@@ -959,7 +890,6 @@ def create_date():
 
 @app.route("/doctors/dates/<int:date_id>", methods=['PATCH'])
 @jwt_required()
-@login_required
 def update_date(date_id):
     claims = get_jwt()
     try:
@@ -1001,7 +931,6 @@ def update_date(date_id):
 
 @app.route('/doctors/dates/<int:date_id>', methods=["DELETE"])
 @jwt_required()
-@login_required
 def delete_date(date_id):
     claims = get_jwt()
     try:
@@ -1109,7 +1038,6 @@ def get_all_specializations():
 
 @app.route('/specializations/<int:specialization_id>/doctors')
 @jwt_required()
-@login_required
 def get_doctors_by_specialization(specialization_id):
     claims = get_jwt()
     try:
@@ -1184,10 +1112,10 @@ def get_day_date(day):
 
 @app.route('/sessions')
 @jwt_required()
-@login_required
 def get_sessions():
-    if session['is_doctor']:
-        sessions = Session.query.filter_by(doctor_id=session['id']).order_by('id').all()
+    claims = get_jwt()
+    if claims['is_doctor']:
+        sessions = Session.query.filter_by(doctor_id=claims['sub']).order_by('id').all()
 
         if sessions == []:
             return jsonify({
@@ -1196,7 +1124,7 @@ def get_sessions():
                 "success": False
             }), 404
 
-        future_appointments, current_appointments, previous_appointments = create_appointments(sessions)
+        future_appointments, current_appointments, previous_appointments = create_appointments(sessions, claims['is_doctor'])
 
         return jsonify({
             'all_appointments': [session.format() for session in sessions],
@@ -1209,7 +1137,7 @@ def get_sessions():
 
     else:
 
-        sessions = Session.query.filter_by(patient_id=session['id']).order_by('id').all()
+        sessions = Session.query.filter_by(patient_id=claims['sub']).order_by('id').all()
 
         if sessions == []:
             return jsonify({
@@ -1218,7 +1146,7 @@ def get_sessions():
                 "success": False
             }), 404
 
-        future_appointments, previous_appointments = create_appointments(sessions)
+        future_appointments, previous_appointments = create_appointments(sessions, claims['is_doctor'])
 
         return jsonify({
             "future_appointments": future_appointments,
@@ -1230,14 +1158,14 @@ def get_sessions():
 
 @app.route('/sessions/<int:session_id>')
 @jwt_required()
-@login_required
 def get_one_session(session_id):
+    claims = get_jwt()
     try:
         current_session = ''
-        if session['is_doctor']:
-            current_session = Session.query.filter_by(id=session_id, doctor_id=session['id']).first()
+        if claims['is_doctor']:
+            current_session = Session.query.filter_by(id=session_id, doctor_id=claims['sub']).first()
         else:
-            current_session = Session.query.filter_by(id=session_id, patient_id=session['id']).first()
+            current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
         if current_session is None or current_session == '':
             return jsonify({
@@ -1261,11 +1189,11 @@ def get_one_session(session_id):
 # filtered sessions => For Doctor only not user
 @app.route('/sessions/filter')
 @jwt_required()
-@login_required
 def filter_doctors():
+    claims = get_jwt()
     data = request.args
 
-    doctor_id = session['id']
+    doctor_id = claims['sub']
     claims = get_jwt()
     try:
         if not claims['is_doctor']:
@@ -1316,10 +1244,9 @@ def filter_doctors():
 # Patient only that has the access to create the session
 @app.route('/doctors/<int:doctor_id>/sessions', methods=['POST'])
 @jwt_required()
-@login_required
 def create_session(doctor_id):
-    data = request.get_json()
     claims = get_jwt()
+    data = request.get_json()
     try:
         if claims['is_doctor']:
             return jsonify({
@@ -1334,7 +1261,7 @@ def create_session(doctor_id):
                 "success": False
             }), 401
 
-        patient_id = session['id']
+        patient_id = claims['sub']
 
         day = data.get('day', None).capitalize()
         date = get_day_date(day)
@@ -1385,16 +1312,16 @@ def create_session(doctor_id):
 
 @app.route('/sessions/<int:session_id>', methods=['PATCH'])
 @jwt_required()
-@login_required
 def update_session(session_id):
+    claims = get_jwt()
     data = request.get_json()
     try:
         current_session = []
 
-        if session['is_doctor']:
-            current_session = Session.query.filter_by(id=session_id, doctor_id=session['id']).first()
+        if claims['is_doctor']:
+            current_session = Session.query.filter_by(id=session_id, doctor_id=claims['sub']).first()
         else:
-            current_session = Session.query.filter_by(id=session_id, patient_id=session['id']).first()
+            current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
         if current_session is None:
             return jsonify({
@@ -1449,15 +1376,15 @@ def update_session(session_id):
 
 @app.route('/sessions/<int:session_id>', methods=["DELETE"])
 @jwt_required()
-@login_required
 def delete_session(session_id):
+    claims = get_jwt()
     try:
         current_session = []
 
-        if session['is_doctor']:
-            current_session = Session.query.filter_by(id=session_id, doctor_id=session['id']).first()
+        if claims['is_doctor']:
+            current_session = Session.query.filter_by(id=session_id, doctor_id=claims['sub']).first()
         else:
-            current_session = Session.query.filter_by(id=session_id, patient_id=session['id']).first()
+            current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
         if current_session is None:
             abort(404)
@@ -1478,7 +1405,6 @@ def delete_session(session_id):
 # - Upload Diagnosis Files inside Session -
 @app.route('/sessions/<int:sessions_id>/reviews', methods=["POST"])
 @jwt_required()
-@login_required
 def create_reviews(sessions_id):
     claims = get_jwt()
     try:
@@ -1490,7 +1416,7 @@ def create_reviews(sessions_id):
             }), 403
         data = request.get_json()
 
-        patient_id = session['id']
+        patient_id = claims['sub']
         session_id = sessions_id
         comment = data.get('comment', None)
         stars = data.get('stars', None)
@@ -1522,7 +1448,6 @@ def create_reviews(sessions_id):
 
 @app.route('/sessions/<int:session_id>/files', methods=['PATCH'])
 @jwt_required()
-@login_required
 def upload_files(session_id):
     claims = get_jwt()
     try:
@@ -1555,7 +1480,6 @@ def upload_files(session_id):
 
 @app.route('/doctors/<int:doctor_id>/favorite', methods=["POST"])
 @jwt_required()
-@login_required
 def add_to_favorite_list(doctor_id):
     data = request.get_json()
     claims = get_jwt()
@@ -1566,7 +1490,7 @@ def add_to_favorite_list(doctor_id):
                 "error": 403,
                 "success": False
             }), 403
-        patient_id = session['id']
+        patient_id = claims['sub']
         doctor_id = doctor_id
         is_in_favorite_list = data.get('is_in_favorite_list')
 
@@ -1596,7 +1520,6 @@ def add_to_favorite_list(doctor_id):
 
 @app.route('/favorites')
 @jwt_required()
-@login_required
 def get_all_favorite_doctors():
     claims = get_jwt()
     try:
@@ -1606,7 +1529,7 @@ def get_all_favorite_doctors():
                 "error": 403,
                 "success": False
             }), 403
-        patient_id = session['id']  # => From Session
+        patient_id = claims['sub']  # => From Session
 
         query = sqlalchemy.text(
             f''' select doctors.id, doctors.name, doctors.avatar, doctors.clinic_location from doctors join favorites on favorites.doctor_id = doctors.id and favorites.patient_id = {patient_id} where favorites.is_in_favorite_list = true; ''')
@@ -1637,7 +1560,6 @@ def get_all_favorite_doctors():
 
 @app.route('/doctors/<int:doctor_id>/favorite', methods=["DELETE"])
 @jwt_required()
-@login_required
 def update_favorites_doctors(doctor_id):
     claims = get_jwt()
     # try:
@@ -1663,7 +1585,6 @@ def update_favorites_doctors(doctor_id):
 
 @app.route('/doctors/<int:doctor_id>/reviews')
 @jwt_required()
-@login_required
 def get_reviews(doctor_id):
     claims = get_jwt()
     try:
@@ -1703,8 +1624,8 @@ def get_reviews(doctor_id):
 # ______________ Update Avatar ______________
 @app.route('/avatar', methods=['PATCH'])
 @jwt_required()
-@login_required
 def update_avatar():
+    claims = get_jwt()
     try:
         status, result = get_images()
         if not status:
@@ -1713,10 +1634,10 @@ def update_avatar():
         avatar = result[0]
         current_user = ""
 
-        if session['is_doctor']:
-            current_user = Doctor.query.get(session['id'])
+        if claims['is_doctor']:
+            current_user = Doctor.query.get(claims['sub'])
         else:
-            current_user = Patient.query.get(session['id'])
+            current_user = Patient.query.get(claims['sub'])
 
         current_user.update({"avatar": avatar})
 
@@ -1781,7 +1702,6 @@ def add_url():
 
 @app.route('/model/brain', methods=['POST'])
 @jwt_required()
-@login_required
 def get_result_from_brain_model():
     try:
         # Check on the image
@@ -1820,7 +1740,6 @@ def get_result_from_brain_model():
 
 @app.route('/model/covid19', methods=['POST'])
 @jwt_required()
-@login_required
 def get_result_from_covid19_model():
     try:
         # Check on the image
@@ -1854,14 +1773,14 @@ def get_result_from_covid19_model():
 
 # ______________ Global Functions ______________
 
-def create_appointments(sessions):
+def create_appointments(sessions, is_doctor):
     current_date = datetime.now().strftime('%Y-%m-%d')
 
     future_appointments = []
     current_appointments = []
     previous_appointments = []
 
-    if session['is_doctor']:
+    if is_doctor:
         for current_session in sessions:
             if str(current_date) < str(current_session.date):
                 future_appointments.append(current_session.format())
