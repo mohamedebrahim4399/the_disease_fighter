@@ -29,7 +29,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secretkeyfordevelopmentonly*fordevelopment'
 # app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this in your code!
 
-# app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 
@@ -42,7 +41,7 @@ jwt = JWTManager(app)
 setup_db(app)
 
 # Set up CORS
-CORS(app, supports_credentials=True)
+CORS(app)
 
 # The url of the client model and the url of the server.
 base_url = "https://thediseasefighter.herokuapp.com/"
@@ -206,9 +205,6 @@ def login(register_data=None):
         session.permanent = True
         session["id"] = user.id
         session["name"] = user.name
-        # app.config.update(
-        #     PERMANENT_SESSION_LIFETIME=2592000  # 30 Days
-        # )
 
         if patient:
             session['is_doctor'] = False
@@ -236,10 +232,6 @@ def create_token(id, is_doctor):
 
 @app.route("/logout")
 def logout():
-    # To Make the expired Cookie
-    # app.config.update(
-    #     PERMANENT_SESSION_LIFETIME=1
-    # )
 
     if not session:
         return jsonify({
