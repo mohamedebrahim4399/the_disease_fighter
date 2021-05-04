@@ -129,6 +129,10 @@ class Doctor(db.Model):
         if self.spec_id:
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
 
+        avatar = self.avatar
+        if avatar[-3:].lower() == 'jpg':
+            avatar = "https://thediseasefighter.herokuapp.com/static/" + self.avatar
+
         return {
             'id': self.id,
             'name': self.name,
@@ -138,7 +142,7 @@ class Doctor(db.Model):
             'gender': self.gender,
             'x_y': self.x_y,
             'about': self.about,
-            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
+            'avatar': avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
