@@ -139,7 +139,7 @@ class Doctor(db.Model):
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
                                 Available_date.query.filter_by(doctor_id=self.id)],
-            "specialization": [specialization.format() for specialization in Specialization.query.filter_by(id=self.spec_id)]
+            "specialization": Specialization.query.get(self.spec_id) or Specialization.query.get(self.spec_id).format()
         }
 
 
