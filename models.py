@@ -181,7 +181,7 @@ class Specialization(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'image': self.image,
+            'image': f"https://thediseasefighter.herokuapp.com/static/specializations/{self.image}",
         }
 
 
