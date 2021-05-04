@@ -125,13 +125,9 @@ class Doctor(db.Model):
         db.session.commit()
 
     def format(self):
-        specialization = {}
+        specialization = None
         if self.spec_id:
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
-
-        avatar = self.avatar
-        if avatar[:3].lower()!= 'htt':
-            avatar = "https://thediseasefighter.herokuapp.com/static/" + self.avatar
 
         return {
             'id': self.id,
@@ -142,7 +138,7 @@ class Doctor(db.Model):
             'gender': self.gender,
             'x_y': self.x_y,
             'about': self.about,
-            'avatar': avatar,
+            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
@@ -182,10 +178,13 @@ class Specialization(db.Model):
         db.session.commit()
 
     def format(self):
+        image = self.image
+        if image[:3].lower() != 'htt':
+            image = "https://thediseasefighter.herokuapp.com/static/" + self.image
         return {
             'id': self.id,
             'name': self.name,
-            'image': f"https://thediseasefighter.herokuapp.com/static/specializations/{self.image}",
+            'image': image,
         }
 
 
