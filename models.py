@@ -138,8 +138,8 @@ class Doctor(db.Model):
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
-                                Available_date.query.filter_by(doctor_id=self.id)]
-
+                                Available_date.query.filter_by(doctor_id=self.id)],
+            "specialization": [specialization.format() for specialization in Specialization.query.filter_by(id=self.spec_id)]
         }
 
 
