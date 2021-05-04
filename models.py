@@ -125,6 +125,10 @@ class Doctor(db.Model):
         db.session.commit()
 
     def format(self):
+        specialization = None
+        if self.spec_id:
+            specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
+
         return {
             'id': self.id,
             'name': self.name,
@@ -139,7 +143,7 @@ class Doctor(db.Model):
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
                                 Available_date.query.filter_by(doctor_id=self.id)],
-            "specialization": Specialization.query.get(self.spec_id) or Specialization.query.get(self.spec_id).format()
+            "specialization":  specialization
         }
 
 
