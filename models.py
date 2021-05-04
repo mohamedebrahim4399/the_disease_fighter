@@ -125,7 +125,7 @@ class Doctor(db.Model):
         db.session.commit()
 
     def format(self):
-        specialization = None
+        specialization = {}
         if self.spec_id:
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
 

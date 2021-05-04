@@ -98,12 +98,12 @@ def register():
         }), 409
     # -----------------------------------------------
 
-    phone = data.get('phone', "")
-    gender = data.get('gender', "")
-    about = data.get('about', "")
+    phone = data.get('phone', None)
+    gender = data.get('gender', None)
+    about = data.get('about', None)
     avatar = data.get('avatar', "default.png")
-    dob = data.get('dob', "")
-    x_y = data.get('x_y', "")
+    dob = data.get('dob', None)
+    x_y = data.get('x_y', None)
 
     if is_doctor == True:
         clinic_location = data.get('clinic_location')
@@ -121,7 +121,7 @@ def register():
 
 
     elif is_doctor == False:
-        location = data.get('location', "")
+        location = data.get('location', None)
 
         try:
             patient = Patient(name=name, email=email, password=password, phone=phone, about=about, gender=gender,
@@ -138,10 +138,10 @@ def register():
 
 
 @app.route('/login', methods=["POST"])
-def login(register_data=""):
+def login(register_data=None):
 
     # Redirect From Registration Page
-    if register_data is not "":
+    if register_data is not None:
         email, password, is_doctor = register_data
 
         if is_doctor:
@@ -166,7 +166,7 @@ def login(register_data=""):
     patient = Patient.query.filter_by(email=email).first()
     doctor = Doctor.query.filter_by(email=email).first()
 
-    if (patient or doctor) is "":
+    if (patient or doctor) is None:
         abort(401)
 
     user = patient or doctor
@@ -252,8 +252,8 @@ def update_current_user():
         if claims['is_doctor']:
             doctor = Doctor.query.get(claims['sub'])
             # To make necessary to enter the id of Specialization
-            if doctor.spec_id is "":
-                if data.get('spec_id') is "":
+            if doctor.spec_id is None:
+                if data.get('spec_id') is None:
                     return jsonify({
                         "message": "You must send spec_id",
                         "error": 401,
@@ -363,10 +363,10 @@ def create_notification():
 
         new_patient_id = claims['sub']
         new_seen = False
-        time = body.get('time', "")
-        doctor_name = body.get('doctor_name', "")
+        time = body.get('time', None)
+        doctor_name = body.get('doctor_name', None)
 
-        if (time and doctor_name) is "":
+        if (time and doctor_name) is None:
             return jsonify({
                 "message": "time or doctor_name not in body request",
                 "error": 400,
@@ -720,7 +720,7 @@ def sort_days(dates):
 def create_periods(date_id, start, end):
     periods = available_dates(start, end)
     for p in periods:
-        period = Period(time=p, is_available=False, available_date_id=date_id, session_id="")
+        period = Period(time=p, is_available=False, available_date_id=date_id, session_id=None)
         period.insert()
 
 
@@ -730,10 +730,10 @@ def delete_periods(date_id):
         period.delete()
 
 
-def update_period(session_id, period_id, previous_period_id=""):
-    if previous_period_id is not "":
+def update_period(session_id, period_id, previous_period_id=None):
+    if previous_period_id is not None:
         previous_period = Period.query.get(previous_period_id)
-        previous_period.session_id = ""
+        previous_period.session_id = None
         previous_period.is_available = False
         previous_period.update()
 
@@ -769,7 +769,7 @@ def get_doctor_days(doctor_id):
             if str(today) > str(data.date):
                 period = Period.query.get(data.period_id)
                 period.is_available = False
-                period.session_id = ""
+                period.session_id = None
                 period.update()
             else:
                 break
@@ -923,7 +923,7 @@ def update_date(date_id):
         data = request.get_json()
         date = Available_date.query.get(date_id)
 
-        if date is "":
+        if date is None:
             abort(404)
 
         if "start_time" in data or "end_time" in data:
@@ -963,7 +963,7 @@ def delete_date(date_id):
             }), 403
         date = Available_date.query.get(date_id)
 
-        if date is "":
+        if date is None:
             return jsonify({
                 "message": "The date not found",
                 "error": 404,
@@ -1188,7 +1188,7 @@ def get_one_session(session_id):
         else:
             current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
-        if current_session is "" or current_session == '':
+        if current_session is None or current_session == '':
             return jsonify({
                 'message': "This session is not for you.",
                 'error': 403,
@@ -1284,23 +1284,23 @@ def create_session(doctor_id):
 
         patient_id = claims['sub']
 
-        day = data.get('day', "").capitalize()
+        day = data.get('day', None).capitalize()
         date = get_day_date(day)
 
-        time = data.get('time', "")
-        am_pm = data.get('am_pm', "")
-        name = data.get('name', "")
-        gender = data.get('gender', "")
-        phone = data.get('phone', "")
-        comment = data.get('comment', "")
+        time = data.get('time', None)
+        am_pm = data.get('am_pm', None)
+        name = data.get('name', None)
+        gender = data.get('gender', None)
+        phone = data.get('phone', None)
+        comment = data.get('comment', None)
 
-        diagnosis = data.get('diagnosis', "")
-        medicines = data.get('medicines', "")
-        files = data.get('files', "")
+        diagnosis = data.get('diagnosis', None)
+        medicines = data.get('medicines', None)
+        files = data.get('files', None)
 
         # To reserve an appointment with a period of time
-        period_id = data.get("period_id", "")
-        previous_period_id = data.get("previous_period_id", "")
+        period_id = data.get("period_id", None)
+        previous_period_id = data.get("previous_period_id", None)
 
         new_session = Session(
             date=date,
@@ -1344,7 +1344,7 @@ def update_session(session_id):
         else:
             current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
-        if current_session is "":
+        if current_session is None:
             return jsonify({
                 "message": "This appointment is not for you.",
                 "error": 404,
@@ -1352,7 +1352,7 @@ def update_session(session_id):
             }), 404
 
         if "day" in data:
-            day = data.get('day', "").capitalize()
+            day = data.get('day', None).capitalize()
             date = get_day_date(day)
 
             data.update({"day": day, "date": date})
@@ -1407,7 +1407,7 @@ def delete_session(session_id):
         else:
             current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
-        if current_session is "":
+        if current_session is None:
             abort(404)
 
         periods = Period.query.filter_by(session_id=session_id).first()
@@ -1439,10 +1439,10 @@ def create_reviews(sessions_id):
 
         patient_id = claims['sub']
         session_id = sessions_id
-        comment = data.get('comment', "")
-        stars = data.get('stars', "")
+        comment = data.get('comment', None)
+        stars = data.get('stars', None)
 
-        if (comment and stars) is "":
+        if (comment and stars) is None:
             return jsonify({
                 "message": "You should send comment and star in the body request",
                 "error": 400,
@@ -1680,7 +1680,7 @@ def update_avatar():
 # Check the url of the model server is working or not.
 def check(urls):
     if not len(urls):
-        return ""
+        return None
 
     try:
         # http://127.0.0.1:5000/predict ==> http://127.0.0.1:5000
@@ -1709,9 +1709,9 @@ def prediction(server_url, image_name):
 @app.route('/addurl', methods=['POST'])
 def add_url():
     body = request.get_json()
-    url = body.get('url', "")
+    url = body.get('url', None)
 
-    if url is "":
+    if url is None:
         abort(404)
 
     try:
