@@ -198,7 +198,7 @@ def create_token(id, is_doctor):
 @app.route("/logout")
 def logout():
     return ({
-        "message": "Clear the access token from you to logout😊😊. Please don't use this route again😢"
+        "message": "Clear the access token from yours to logout😊😊. Please don't use this route again😢"
     })
 
 
@@ -214,7 +214,7 @@ def get_current_user():
 
         if claims['is_doctor']:  # this is a doctor
             current_user = Doctor.query.get(claims['sub'])
-            format=current_user.format(claims['sub'])
+            format=current_user.format()
         else:
             current_user = Patient.query.get(claims['sub'])
             format=current_user.format()
@@ -471,6 +471,12 @@ def doctor_reviews(doctor_id):
 
     return reviews
 
+def favorite_list(doctor_id, patient_id):
+    is_in_favorite_list = False
+    in_favorite = Favorite.query.filter_by(doctor_id=doctor_id, patient_id=patient_id).first()
+    if in_favorite:
+        is_in_favorite_list = in_favorite.is_in_favorite_list
+    return {"is_in_favorite_list": is_in_favorite_list}
 
 @app.route('/doctors')
 @jwt_required()
@@ -498,8 +504,9 @@ def get_all_doctors():
             reviews = doctor_reviews(doctor.id)
 
             doctor_obj = {}
-            doctor_obj.update(doctor.format(claims['sub']))
+            doctor_obj.update(doctor.format())
             doctor_obj.update(reviews)
+            doctor_obj.update(favorite_list(doctor.id, claims['sub']))
             doctors_list.append(doctor_obj)
 
         return jsonify({
@@ -508,8 +515,11 @@ def get_all_doctors():
             "success": True
         })
     except:
-        abort(404)
-
+        return jsonify({
+            "message": "No doctors were found",
+            "error": 404,
+            "success": False,
+        })
 
 @app.route('/doctors/<int:doctor_id>')
 @jwt_required()
@@ -522,20 +532,26 @@ def get_one_doctor(doctor_id):
                 "error": 403,
                 "success": False
             }), 403
-        doctor = Doctor.query.get(doctor_id)
 
+        doctor = Doctor.query.get(doctor_id)
         reviews = doctor_reviews(doctor.id)
+        is_in_favorite_list = favorite_list(doctor_id, claims['sub'])
 
         doctor_obj = {}
-        doctor_obj.update(doctor.format(claims['sub']))
+        doctor_obj.update(doctor.format())
         doctor_obj.update(reviews)
+        doctor_obj.update(is_in_favorite_list)
 
         return jsonify({
             'doctor': doctor_obj,
             'success': True
         })
     except:
-        abort(404)
+        return jsonify({
+            "message": "The doctor was not found",
+            "error": 404,
+            "success": False
+        })
 
 
 @app.route('/doctors/top')
@@ -556,8 +572,9 @@ def top_doctors():
         for doctor in doctors:
             reviews = doctor_reviews(doctor.id)
             doctor_obj = {}
-            doctor_obj.update(doctor.format(claims['sub']))
+            doctor_obj.update(doctor.format())
             doctor_obj.update(reviews)
+            doctor_obj.update(favorite_list(doctor.id, claims['sub']))
             doctor_list.append(doctor_obj)
 
         # Sort by the highest rated doctors
@@ -571,7 +588,11 @@ def top_doctors():
             "total_top_doctors": len(top_doctors)
         })
     except:
-        abort(400)
+        return jsonify({
+            "message": "No Top doctors found",
+            "error": 404,
+            "success": False
+        })
 
 
 # _____________________Available_date _______________________
@@ -1529,10 +1550,10 @@ def get_all_favorite_doctors():
                 "error": 403,
                 "success": False
             }), 403
-        patient_id = claims['sub']  # => From Session
+        patient_id = claims['sub']  # => From token
 
         query = sqlalchemy.text(
-            f''' select doctors.id, doctors.name, doctors.avatar, doctors.clinic_location from doctors join favorites on favorites.doctor_id = doctors.id and favorites.patient_id = {patient_id} where favorites.is_in_favorite_list = true; ''')
+            f''' select doctors.id, doctors.name, doctors.avatar, doctors.clinic_location, favorites.is_in_favorite_list from doctors join favorites on favorites.doctor_id = doctors.id and favorites.patient_id = {patient_id} where favorites.is_in_favorite_list = true; ''')
 
         doctors_list = []
 
@@ -1540,11 +1561,16 @@ def get_all_favorite_doctors():
         fetch_data = query_result.fetchall()
 
         if len(fetch_data) == 0:
+            return jsonify({
+                "message": "You don't have any doctors in your Favorite List",
+                "error": 404,
+                "success": False
+            })
             abort(404)
 
         for data in fetch_data:
             doctor_obj = {}
-            doctor_obj.update({"id": data[0], "name": data[1], "avatar": data[2], "clinic_location": data[3]})
+            doctor_obj.update({"id": data[0], "name": data[1], "avatar": data[2], "clinic_location": data[3], "is_in_favorite_list": data[4]})
 
             doctor_obj.update(doctor_reviews(data[0]))
 

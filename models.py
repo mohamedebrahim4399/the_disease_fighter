@@ -124,12 +124,7 @@ class Doctor(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def format(self, patient_id):
-        print('asdfhsdklhflasdjhfaksldjfhalskdjfhsadlkjhfsalkdjfsaldkjfhasdf')
-        print(patient_id)
-        x = False
-        if Favorite.query.filter_by(doctor_id=self.id, patient_id=patient_id).first():
-            x = Favorite.query.filter_by(doctor_id=self.id, patient_id=patient_id).first().is_in_favorite_list
+    def format(self):
         return {
             'id': self.id,
             'name': self.name,
@@ -142,7 +137,6 @@ class Doctor(db.Model):
             'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
-            'is_in_favourite': x,
             'available_dates': [available_date.format() for available_date in
                                 Available_date.query.filter_by(doctor_id=self.id)]
 
