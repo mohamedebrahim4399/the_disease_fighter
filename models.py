@@ -130,7 +130,7 @@ class Doctor(db.Model):
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
 
         avatar = self.avatar
-        if avatar[-3:].lower() == 'jpg':
+        if avatar[:3].lower()!= 'htt':
             avatar = "https://thediseasefighter.herokuapp.com/static/" + self.avatar
 
         return {
