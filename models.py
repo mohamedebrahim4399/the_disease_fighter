@@ -180,7 +180,7 @@ class Specialization(db.Model):
     def format(self):
         image = self.image
         if image[:3].lower() != 'htt':
-            image = "https://thediseasefighter.herokuapp.com/static/" + self.image
+            image = "https://thediseasefighter.herokuapp.com/static/specializations/" + self.image
         return {
             'id': self.id,
             'name': self.name,
