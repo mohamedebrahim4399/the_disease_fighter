@@ -1,8 +1,9 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.elements import SavepointClause
 
-database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
-# database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
+# database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
+database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
 db = SQLAlchemy()
 
 
@@ -129,6 +130,8 @@ class Doctor(db.Model):
         if self.spec_id:
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
 
+        print(specialization)
+
         return {
             'id': self.id,
             'name': self.name,
@@ -143,7 +146,7 @@ class Doctor(db.Model):
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
                                 Available_date.query.filter_by(doctor_id=self.id)],
-            "specialization":  specialization
+            "specialization":  specialization or {}
         }
 
 
@@ -291,13 +294,16 @@ class Session(db.Model):
     diagnosis = db.Column(db.String())
     medicines = db.Column(db.String())
     files = db.Column(db.String())
+    notification_seen = db.Column(db.Boolean)
+    notification_time = db.Column(db.Time())
+    deleted = db.Column(db.Boolean)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'))
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id', ondelete='CASCADE'))
 
     def __repr__(self):
-        return f'<Session id: {self.id} name: {self.name} gender: {self.gender} day: {self.day} time: {self.time} am_pm: {self.am_pm} phone:{self.phone} comment: {self.comment} diagnosis: {self.diagnosis} medicines: {self.medicines} files: {self.files} patient_id: {self.patient_id} doctor_id: {self.doctor_id}>'
+        return f'<Session id: {self.id} name: {self.name} gender: {self.gender} day: {self.day} time: {self.time} am_pm: {self.am_pm} phone:{self.phone} comment: {self.comment} diagnosis: {self.diagnosis} medicines: {self.medicines} files: {self.files} notification_time: {self.notification_time} notification_seen: {self.notification_seen} deleted: {self.deleted} patient_id: {self.patient_id} doctor_id: {self.doctor_id}>'
 
-    def __init__(self, name, gender, date, day, time, am_pm, phone, comment, diagnosis, medicines, files, patient_id,
+    def __init__(self, name, gender, date, day, time, am_pm, phone, comment, diagnosis, medicines, files, notification_seen, notification_time, deleted, patient_id,
                  doctor_id):
         self.name = name
         self.gender = gender
@@ -310,6 +316,9 @@ class Session(db.Model):
         self.diagnosis = diagnosis
         self.medicines = medicines
         self.files = files
+        self.notification_seen = notification_seen
+        self.notification_time = notification_time
+        self.deleted: deleted
         self.patient_id = patient_id
         self.doctor_id = doctor_id
 
@@ -326,7 +335,17 @@ class Session(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def format(self):
+    def format(self, notification = False):
+
+        if notification:
+            return {
+                'session_id': self.id,
+                'time': self.notification_time.strftime("%I:%M %p"),
+                'seen': self.notification_seen or False,
+                'doctor_name': Doctor.query.get(self.doctor_id).name
+            } 
+
+
         return {
             'id': self.id,
             'name': self.name,
@@ -390,52 +409,6 @@ class Available_date(db.Model):
             'end_time': self.end_time,
             'day': self.day,
             'doctor_id': self.doctor_id,
-        }
-
-
-'''
-Notification
-'''
-
-
-class Notification(db.Model):
-    __tablename__ = 'notifications'
-
-    id = db.Column(db.Integer, primary_key=True)
-    seen = db.Column(db.Boolean)
-    time = db.Column(db.Time())
-    doctor_name = db.Column(db.String())
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'))
-
-    def __repr__(self):
-        return f'<Notification id: {self.id} seen: {self.seen} time: {self.time}  doctor_name: {self.doctor_name} patient_id: {self.patient_id}>'
-
-    def __init__(self, seen, time, doctor_name, patient_id):
-        self.seen = seen
-        self.time = time
-        self.doctor_name = doctor_name
-        self.patient_id = patient_id
-
-    def insert(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def update(self, data):
-        for key, value in data.items():
-            setattr(self, key, value)
-        db.session.commit()
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    def format(self):
-        return {
-            'id': self.id,
-            'seen': self.seen,
-            'time': str(self.time),
-            'doctor_name': self.doctor_name,
-            'patient_id': self.patient_id,
         }
 
 

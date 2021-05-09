@@ -157,7 +157,7 @@ def login(register_data=None):
     if "email" not in data or "password" not in data:
         return jsonify({
             'message': 'The email or password is missing',
-            'error': 'unauthorized',
+            'error': 401,
             'success': False
         }), 401
 
@@ -180,7 +180,7 @@ def login(register_data=None):
     # Password is incorrect
     return jsonify({
         'message': 'The email or password is incorrect',
-        'error': 'unauthorized',
+        'error': 401,
         'success': False
     }), 401
 
@@ -330,7 +330,7 @@ def get_all_Notification():
                 "success": False
             }), 403
 
-        notifications = Notification.query.filter_by(patient_id=claims['sub']).order_by('id').all()
+        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_time != None, Session.deleted != True).all()
 
         if len(notifications) == 0:
             return jsonify({
@@ -340,53 +340,22 @@ def get_all_Notification():
             }), 404
 
         return jsonify({
-            "notifications": [notification.format() for notification in notifications],
+            "notifications": [notification.format(True) for notification in notifications],
             "total_notifications": len(notifications),
             'success': True
         })
     except:
-        abort(404)
-
-
-@app.route('/notifications', methods=['POST'])
-@jwt_required()
-def create_notification():
-    body = request.get_json()
-    claims = get_jwt()
-    try:
-        if claims['is_doctor']:
-            return jsonify({
-                "message": "You aren't allowed to open this route",
-                "error": 403,
-                "success": False
-            }), 403
-
-        new_patient_id = claims['sub']
-        new_seen = False
-        time = body.get('time', None)
-        doctor_name = body.get('doctor_name', None)
-
-        if (time and doctor_name) is None:
-            return jsonify({
-                "message": "time or doctor_name not in body request",
-                "error": 400,
-                "success": False
-            }), 400
-
-        notification = Notification(seen=new_seen, time=time, doctor_name=doctor_name, patient_id=new_patient_id)
-
-        notification.insert()
-
         return jsonify({
-            'success': True,
-        }), 201  # Created
-    except:
-        abort(422)
+            "message": "There's an Error",
+            "error": 422,
+            "success": False
+        })
 
-
-@app.route('/notifications/<int:notification_id>', methods=['DELETE'])
+# To Delete or Seen the Notification
+@app.route('/notifications/<int:session_id>', methods=['PATCH'])
 @jwt_required()
-def delete_notification(notification_id):
+def update_notification(session_id):
+    data = request.get_json()
     claims = get_jwt()
     try:
         if claims['is_doctor']:
@@ -396,43 +365,55 @@ def delete_notification(notification_id):
                 "success": False
             }), 403
 
-        notification = Notification.query.get(notification_id)
+        notification = Session.query.filter(Session.id == session_id, Session.patient_id == claims['sub']).first()
 
-        if not notification:
+        if notification is None:
             return jsonify({
-                "message": "No Notifications",
+                "message": "This notification wasn't found",
                 "error": 404,
                 "success": False
-            }), 404
+            })
 
-        notification.delete()
-        return jsonify({
-            "message": "The notification has been removed!",
-            'success': True
-        }), 200
-    except:
-        abort(422)
-
-
-@app.route('/notifications/<int:notification_id>', methods=['PATCH'])
-@jwt_required()
-def update_notification(notification_id):
-    body = request.get_json()
-    claims = get_jwt()
-    try:
-        if claims['is_doctor']:
+        if notification.deleted:
             return jsonify({
-                "message": "You aren't allowed to open this route",
-                "error": 403,
+                "message": "You have deleted this notification before",
+                "error": 422,
                 "success": False
-            }), 403
+            })
 
-        notification = Notification.query.get(notification_id)
-        notification.update(body)
+        if notification.notification_seen:#####################################
+            return jsonify({
+                "message": "You have seen this notification before",
+                "error": 422,
+                "success": False
+            })
 
-        return jsonify({
-            'success': True
-        })
+        if "type" in data:
+            print(data['type'])
+            if data['type'] == 'delete':
+                notification.update({"deleted": True})
+                return jsonify({
+                    "message": "You have delete the notification",
+                    "success": True
+                })
+            elif data['type'] == 'update':
+                notification.update({'notification_seen': True})
+                return jsonify({
+                    "message": "The Notification has been updated",
+                    "success": True
+                })
+            else:
+                return jsonify({
+                    "message": "You should put 'type' with delete or update",
+                    "error": 400,
+                    "success": False
+                })
+        else:
+            return jsonify({
+                "message": "You should put 'type' with delete or update",
+                "error": 400,
+                "success": False
+            })
     except:
         abort(422)
 
@@ -860,7 +841,7 @@ def get_all_dates(doctor_id):
         abort(404)
 
 
-@app.route('/dates', methods=['POST'])
+@app.route('/doctors/dates', methods=['POST'])
 @jwt_required()
 def create_date():
     claims = get_jwt()
@@ -902,9 +883,9 @@ def create_date():
         create_periods(date.id, date.start_time, date.end_time)
 
         return jsonify({
-            "message": "You have created a new date",
-            "success": True
-        })
+        "message": "You have created a new date",
+        "success": True
+    })
     except:
         abort(422)
 
@@ -921,7 +902,14 @@ def update_date(date_id):
                 "success": False
             }), 403
         data = request.get_json()
-        date = Available_date.query.get(date_id)
+        date = Available_date.query.filter_by(id = date_id, doctor_id = claims['sub']).first()
+
+        if date is None:
+            return jsonify({
+                "message": "This route isn't for you.",
+                "error": 403,
+                "success": False
+            })
 
         if date is None:
             abort(404)
@@ -988,6 +976,7 @@ def check_time(times):
 
     for time in times:
         time = time.strip()
+        time = time.lower()
 
         if ":" not in time:
             return [False, {
@@ -1302,6 +1291,10 @@ def create_session(doctor_id):
         period_id = data.get("period_id", None)
         previous_period_id = data.get("previous_period_id", None)
 
+        notification_time = None
+        notification_seen = False
+        deleted = False
+
         new_session = Session(
             date=date,
             day=day.capitalize(),
@@ -1315,7 +1308,10 @@ def create_session(doctor_id):
             patient_id=patient_id,
             diagnosis=diagnosis,
             medicines=medicines,
-            files=files
+            files=files,
+            notification_time = notification_time,
+            notification_seen = notification_seen,
+            deleted = deleted
         )
 
         new_session.insert()
@@ -1367,6 +1363,14 @@ def update_session(session_id):
             files = ", ".join(data['files'])
             data['files'] = files
 
+        if "diagnosis" in data or "medicines" in data:
+            notification_time = datetime.now().strftime("%H:%M:%S")[:-3]
+            notification_seen = False
+            data.update({
+                "notification_time": notification_time,
+                "notification_seen": notification_seen
+            })
+
         current_session.update(data)
 
         if "day" in data or "time" in data or "am_pm" in data:
@@ -1408,9 +1412,23 @@ def delete_session(session_id):
             current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
 
         if current_session is None:
-            abort(404)
+            return jsonify({
+                "message": "The session wasn't found",
+                "error": 404,
+                "success": False
+            }), 404
+
 
         periods = Period.query.filter_by(session_id=session_id).first()
+
+
+        if periods is None:
+            current_session.delete()
+            return jsonify({
+                'message': "You've deleted the appointment successfully",
+                'success': True
+            })
+
         periods.is_available = False
         periods.update()
         current_session.delete()
@@ -1424,9 +1442,9 @@ def delete_session(session_id):
 
 
 # - Upload Diagnosis Files inside Session -
-@app.route('/sessions/<int:sessions_id>/reviews', methods=["POST"])
+@app.route('/sessions/<int:session_id>/reviews', methods=["POST"])
 @jwt_required()
-def create_reviews(sessions_id):
+def create_reviews(session_id):
     claims = get_jwt()
     try:
         if claims['is_doctor']:
@@ -1437,8 +1455,17 @@ def create_reviews(sessions_id):
             }), 403
         data = request.get_json()
 
+        session = Session.query.get(session_id)
+        if session is None:
+            return jsonify({
+                "message": "This session isn't valid",
+                "error": 422,
+                "success": False
+            })
+
+
         patient_id = claims['sub']
-        session_id = sessions_id
+        session_id = session_id
         comment = data.get('comment', None)
         stars = data.get('stars', None)
 
@@ -1596,6 +1623,13 @@ def update_favorites_doctors(doctor_id):
             "success": False
         }), 403
     favorites = Favorite.query.filter_by(doctor_id=doctor_id).first()
+
+    if favorites is None:
+        return jsonify({
+            "message": "This item wasn't found",
+            "error": 404,
+            "success": False
+        })
 
     favorites.delete()
 

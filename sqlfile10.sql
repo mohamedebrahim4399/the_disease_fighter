@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 13.0
--- Dumped by pg_dump version 13.0
+-- Dumped from database version 13.2
+-- Dumped by pg_dump version 13.2
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -115,43 +115,6 @@ CREATE TABLE public.favorites (
 ALTER TABLE public.favorites OWNER TO postgres;
 
 --
--- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.notifications (
-    id integer NOT NULL,
-    seen boolean,
-    "time" time without time zone,
-    doctor_name character varying,
-    patient_id integer
-);
-
-
-ALTER TABLE public.notifications OWNER TO postgres;
-
---
--- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.notifications_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.notifications_id_seq OWNER TO postgres;
-
---
--- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
-
-
---
 -- Name: patients; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -261,6 +224,9 @@ CREATE TABLE public.sessions (
     diagnosis character varying,
     medicines character varying,
     files character varying,
+    notification_time time without time zone,
+    notification_seen boolean,
+    deleted boolean,
     patient_id integer,
     doctor_id integer
 );
@@ -340,13 +306,6 @@ ALTER TABLE ONLY public.doctors ALTER COLUMN id SET DEFAULT nextval('public.doct
 
 
 --
--- Name: notifications id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
-
-
---
 -- Name: patients id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -399,13 +358,13 @@ COPY public.available_dates (id, start_time, end_time, day, doctor_id) FROM stdi
 -- Data for Name: doctors; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.doctors (id, name, email, password, phone, clinic_location, gender, about, avatar, dob, spec_id) FROM stdin;
-1	Mohamed	mohamed@mail.com	sha256$VN65BHFe$3fb834ded588eb7af1d437d0b5f4359c034593a6ca7abc25271e8fec863fbcf4	8563415792	Egypt, Cairo, next to Cairo University	Male	Hello, there! I'm Dr.Mohamed 	default.png	1980-06-12	1
-2	Ahmed	ahmed@mail.com	sha256$gIXiXltz$e74d4d8097ed2048875fe6ac2afbdbc5c2aa4d0faec1d012846394518b3bc88c	8563415792	Saudi Arabia	Male	Hey! I'm Dr.Ahmed. I'm a cardiologist 	default.png	1985-06-08	2
-3	Peter	peter@mail.com	sha256$LK4WXfW9$4e481b2944af3a42f4aeb5548882182e989665a88ed874bb5274611058c33e38	54863258986	Egypt, Alexandria	Male	Hello! I'm Dr.Peter	default.png	1980-06-12	2
-4	Osama	osama@mail.com	sha256$cAn5GwuU$7743409a673d4d40e6534981bd0907c42ccd768cac187baa6df78c4b3e65cd41	1245757575	Egypt	Male	Hi, I'm Dr.Osama 	default.png	1990-06-06	4
-6	Jean	jean@mail.com	sha256$oCp7AriR$79cfbd4690c924e786821ac5d5c34b584084dd054ad08ba3e797e0c3dcdcf982	9865671545	USA	Female	I'm Dr.Jean	default.png	1995-06-12	1
-5	Jessica	jessica@mail.com	sha256$PCOe7dDe$e63a0f85b0a600b70e7986722d723f41288befc53592d30119eb7d1948400111	589766512	USA	Female	I'm Dr.Jessica 	default.png	1980-06-12	5
+COPY public.doctors (id, name, email, password, phone, clinic_location, gender, x_y, about, avatar, dob, spec_id) FROM stdin;
+1	Mohamed	mohamed@mail.com	sha256$VN65BHFe$3fb834ded588eb7af1d437d0b5f4359c034593a6ca7abc25271e8fec863fbcf4	8563415792	Egypt, Cairo, next to Cairo University	Male	\N	Hello, there! I'm Dr.Mohamed 	default.png	1980-06-12	1
+2	Ahmed	ahmed@mail.com	sha256$gIXiXltz$e74d4d8097ed2048875fe6ac2afbdbc5c2aa4d0faec1d012846394518b3bc88c	8563415792	Saudi Arabia	Male	\N	Hey! I'm Dr.Ahmed. I'm a cardiologist 	default.png	1985-06-08	2
+3	Peter	peter@mail.com	sha256$LK4WXfW9$4e481b2944af3a42f4aeb5548882182e989665a88ed874bb5274611058c33e38	54863258986	Egypt, Alexandria	Male	\N	Hello! I'm Dr.Peter	default.png	1980-06-12	2
+4	Osama	osama@mail.com	sha256$cAn5GwuU$7743409a673d4d40e6534981bd0907c42ccd768cac187baa6df78c4b3e65cd41	1245757575	Egypt	Male	\N	Hi, I'm Dr.Osama 	default.png	1990-06-06	4
+6	Jean	jean@mail.com	sha256$oCp7AriR$79cfbd4690c924e786821ac5d5c34b584084dd054ad08ba3e797e0c3dcdcf982	9865671545	USA	Female	\N	I'm Dr.Jean	default.png	1995-06-12	1
+5	Jessica	jessica@mail.com	sha256$PCOe7dDe$e63a0f85b0a600b70e7986722d723f41288befc53592d30119eb7d1948400111	589766512	USA	Female	\N	I'm Dr.Jessica 	default.png	1980-06-12	5
 \.
 
 
@@ -415,17 +374,6 @@ COPY public.doctors (id, name, email, password, phone, clinic_location, gender, 
 
 COPY public.favorites (patient_id, doctor_id, is_in_favorite_list) FROM stdin;
 1	6	t
-\.
-
-
---
--- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.notifications (id, seen, "time", doctor_name, patient_id) FROM stdin;
-1	t	15:30:00	Jean	1
-2	f	06:14:00	Peter	1
-3	t	08:00:00	Mohamed	2
 \.
 
 
@@ -583,13 +531,13 @@ COPY public.reviews (patient_id, session_id, comment, stars) FROM stdin;
 -- Data for Name: sessions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.sessions (id, name, gender, date, day, "time", am_pm, phone, comment, diagnosis, medicines, files, patient_id, doctor_id) FROM stdin;
-1	Alice	Male	2021-04-19	Monday	02:30:00	pm	123659563	I suffer from a severe headache	\N	\N	\N	1	6
-2	Alice	Male	2021-03-29	Monday	03:00:00	pm	123659563	I suffer from a severe headache	You are just exhausted	Take some aspirin	file1.jpg, file2.jpg	1	6
-3	Alice	Male	2021-04-21	Wednesday	07:00:00	pm	123659563	I have a pain in my heart	\N	\N	\N	1	2
-4	Alice	Male	2021-04-02	Friday	06:00:00	pm	123659563	my heart hurt	You are Great.	Take this medicine	file1.jpg	1	3
-5	Willam	Male	2021-04-18	Sunday	04:00:00	pm	3648325635	I have a back pain	\N	\N	\N	2	5
-6	William	Male	2021-04-04	Sunday	08:00:00	pm	123659563	I have a headache	Your are OK	You don't need any medicines	\N	2	1
+COPY public.sessions (id, name, gender, date, day, "time", am_pm, phone, comment, diagnosis, medicines, files, notification_time, notification_seen, deleted, patient_id, doctor_id) FROM stdin;
+1	Alice	Male	2021-04-19	Monday	02:30:00	pm	123659563	I suffer from a severe headache	\N	\N	\N	14:40:00	f	f	1	6
+2	Alice	Male	2021-03-29	Monday	03:00:00	pm	123659563	I suffer from a severe headache	You are just exhausted	Take some aspirin	file1.jpg, file2.jpg	15:20:00	f	f	1	6
+3	Alice	Male	2021-04-21	Wednesday	07:00:00	pm	123659563	I have a pain in my heart	\N	\N	\N	19:20:00	f	f	1	2
+4	Alice	Male	2021-04-02	Friday	06:00:00	pm	123659563	my heart hurt	You are Great.	Take this medicine	file1.jpg	18:15:00	f	f	1	3
+5	Willam	Male	2021-04-18	Sunday	04:00:00	pm	3648325635	I have a back pain	\N	\N	\N	16:15:00	f	f	2	5
+6	William	Male	2021-04-04	Sunday	08:00:00	pm	123659563	I have a headache	Your are OK	You don't need any medicines	\N	20:25:00	f	f	2	1
 \.
 
 
@@ -598,17 +546,17 @@ COPY public.sessions (id, name, gender, date, day, "time", am_pm, phone, comment
 --
 
 COPY public.specializations (id, name, image) FROM stdin;
-1	Brain	https://cdn.pixabay.com/photo/2016/11/21/15/28/brain-1845962_1280.jpg
-2	Heart	https://cdn.pixabay.com/photo/2013/07/18/10/59/pulse-trace-163708_1280.jpg
 3	Dermatology	https://cdn.pixabay.com/photo/2019/06/06/00/30/acne-4254911_1280.png
-4	Teeth	https://cdn.pixabay.com/photo/2016/09/14/20/50/teeth-1670434_960_720.png
 5	Bone	https://cdn.pixabay.com/photo/2017/11/08/17/09/ribs-front-2931058_960_720.png
 6	Physical	https://cdn.pixabay.com/photo/2016/04/01/09/23/abstract-1299334_1280.png
-7	Urology	https://biomerics.com/wp-content/uploads/urology.jpg
-8	Surgery	https://cdn.pixabay.com/photo/2017/01/31/22/23/blade-2027703_1280.png
 9	Kids	https://thumbs.dreamstime.com/b/baby-face-icon-vector-illustration-design-template-172987114.jpg
-10	Internal Medicine	https://cdn.pixabay.com/photo/2016/09/28/12/59/human-heart-1700453_960_720.png
-11	Chest	https://cdn.pixabay.com/photo/2016/06/24/03/53/diagnosis-1476620_1280.jpg
+1	Brain	Brain.png
+4	Teeth	Teeth.png
+7	Urology	urology.png
+11	Chest	chest.png
+8	Surgery	surgery.png
+10	Internal Medicine	internist.png
+2	Heart	Heart.png
 \.
 
 
@@ -624,13 +572,6 @@ SELECT pg_catalog.setval('public.available_dates_id_seq', 13, true);
 --
 
 SELECT pg_catalog.setval('public.doctors_id_seq', 6, true);
-
-
---
--- Name: notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.notifications_id_seq', 3, true);
 
 
 --
@@ -691,14 +632,6 @@ ALTER TABLE ONLY public.doctors
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT favorites_pkey PRIMARY KEY (patient_id, doctor_id);
-
-
---
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
 
 
 --
@@ -779,14 +712,6 @@ ALTER TABLE ONLY public.favorites
 
 ALTER TABLE ONLY public.favorites
     ADD CONSTRAINT favorites_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id) ON DELETE CASCADE;
-
-
---
--- Name: notifications notifications_patient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id) ON DELETE CASCADE;
 
 
 --
