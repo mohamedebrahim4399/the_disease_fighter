@@ -723,6 +723,25 @@ def update_period(session_id, period_id, previous_period_id=None):
     period.is_available = True
     period.update()
 
+# Delete the unused period appointment.
+def delete_unused_appointment():
+    # Delete the unused period appointment.
+    query = sqlalchemy.text(
+        f''' select periods.id as period_id, periods.time, sessions.name, sessions.date from periods join sessions on periods.session_id = sessions.id order by sessions.date; ''')
+
+    today = datetime.now().strftime('%Y-%m-%d')
+
+    query_result = db.engine.execute(query)
+    fetch_data = query_result.fetchall()
+
+    for data in fetch_data:
+        if str(today) > str(data.date):
+            period = Period.query.get(data.period_id)
+            period.is_available = False
+            period.session_id = None
+            period.update()
+        else:
+            break
 
 @app.route('/doctors/<int:doctor_id>/days')
 @jwt_required()
@@ -737,23 +756,7 @@ def get_doctor_days(doctor_id):
             }), 403
         dates = Available_date.query.filter(Available_date.doctor_id == doctor_id).order_by('id').all()
 
-        # Delete the unused period appointment.
-        query = sqlalchemy.text(
-            f''' select periods.id as period_id, periods.time, sessions.name, sessions.date from periods join sessions on periods.session_id = sessions.id order by sessions.date; ''')
-
-        today = datetime.now().strftime('%Y-%m-%d')
-
-        query_result = db.engine.execute(query)
-        fetch_data = query_result.fetchall()
-
-        for data in fetch_data:
-            if str(today) > str(data.date):
-                period = Period.query.get(data.period_id)
-                period.is_available = False
-                period.session_id = None
-                period.update()
-            else:
-                break
+        delete_unused_appointment()
 
         if dates == []:
             return jsonify({
@@ -1124,6 +1127,9 @@ def get_day_date(day):
 @jwt_required()
 def get_sessions():
     claims = get_jwt()
+
+    delete_unused_appointment()
+
     if claims['is_doctor']:
         sessions = Session.query.filter_by(doctor_id=claims['sub']).order_by('id').all()
 
@@ -1171,6 +1177,7 @@ def get_sessions():
 def get_one_session(session_id):
     claims = get_jwt()
     try:
+        delete_unused_appointment()
         current_session = ''
         if claims['is_doctor']:
             current_session = Session.query.filter_by(id=session_id, doctor_id=claims['sub']).first()

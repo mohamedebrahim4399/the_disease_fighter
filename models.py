@@ -346,8 +346,13 @@ class Session(db.Model):
             } 
 
 
+        period_id = None
+        if Period.query.filter_by(session_id = self.id).first():
+            period_id = Period.query.filter_by(session_id = self.id).first().id
+
         return {
             'id': self.id,
+            'patient_avatar': Patient.query.get(self.patient_id).avatar,
             'name': self.name,
             'gender': self.gender,
             'date': self.date,
@@ -362,7 +367,8 @@ class Session(db.Model):
                                              self.files.split(", ")],
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
-            'doctor_id': self.doctor_id
+            'doctor_id': self.doctor_id,
+            'period_id': period_id
         }
 
 
