@@ -352,7 +352,7 @@ class Session(db.Model):
 
         return {
             'id': self.id,
-            'patient_avatar': Patient.query.get(self.patient_id).avatar,
+            'patient_avatar': 'https://thediseasefighter.herokuapp.com/static/' + Patient.query.get(self.patient_id).avatar,
             'name': self.name,
             'gender': self.gender,
             'date': self.date,
