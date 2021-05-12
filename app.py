@@ -389,7 +389,7 @@ def update_notification(session_id):
             })
 
         if "type" in data:
-            print(data['type'])
+            # print(data['type'])
             if data['type'] == 'delete':
                 notification.update({"deleted": True})
                 return jsonify({
@@ -1143,7 +1143,7 @@ def get_sessions():
         future_appointments, current_appointments, previous_appointments = create_appointments(sessions, claims['is_doctor'])
 
         return jsonify({
-            'all_appointments': [session.format() for session in sessions],
+            'all_appointments': [session.format(False, "is_doctor") for session in sessions],
             'future_appointments': future_appointments,
             'current_appointments': current_appointments,
             'previous_appointments': previous_appointments,
@@ -1192,7 +1192,7 @@ def get_one_session(session_id):
             }), 403
 
         return jsonify({
-            'session': current_session.format(),
+            'session': current_session.format(False, claims['is_doctor']),
             'success': True
         })
     except:
@@ -1850,11 +1850,11 @@ def create_appointments(sessions, is_doctor):
     if is_doctor:
         for current_session in sessions:
             if str(current_date) < str(current_session.date):
-                future_appointments.append(current_session.format())
+                future_appointments.append(current_session.format(False, is_doctor))
             elif str(current_date) == str(current_session.date):
-                current_appointments.append(current_session.format())
+                current_appointments.append(current_session.format(False, is_doctor))
             else:
-                previous_appointments.append(current_session.format())
+                previous_appointments.append(current_session.format(False, is_doctor))
 
         future_appointments.sort(key=lambda e: e['date'])
 
@@ -1863,9 +1863,9 @@ def create_appointments(sessions, is_doctor):
     else:
         for current_session in sessions:
             if str(current_date) < str(current_session.date):
-                future_appointments.append(current_session.format())
+                future_appointments.append(current_session.format(False, is_doctor))
             else:
-                previous_appointments.append(current_session.format())
+                previous_appointments.append(current_session.format(False, is_doctor))
 
         future_appointments.sort(key=lambda e: e['date'])
         return [future_appointments, previous_appointments]

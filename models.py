@@ -335,7 +335,7 @@ class Session(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def format(self, notification = False):
+    def format(self, notification = False, is_doctor=None):
 
         if notification:
             return {
@@ -350,9 +350,8 @@ class Session(db.Model):
         if Period.query.filter_by(session_id = self.id).first():
             period_id = Period.query.filter_by(session_id = self.id).first().id
 
-        return {
+        format_dict = {
             'id': self.id,
-            'patient_avatar': 'https://thediseasefighter.herokuapp.com/static/' + Patient.query.get(self.patient_id).avatar,
             'name': self.name,
             'gender': self.gender,
             'date': self.date,
@@ -368,8 +367,17 @@ class Session(db.Model):
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id,
-            'period_id': period_id
+            'period_id': period_id,
         }
+
+        if not is_doctor:
+            doctor = Doctor.query.get(self.doctor_id)
+            format_dict.update({"doctor_name": doctor.name, "doctor_avatar": 'https://thediseasefighter.herokuapp.com/static/' + doctor.avatar})
+        else:
+            patient = Patient.query.get(self.patient_id)
+            format_dict.update({"patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar})
+
+        return format_dict
 
 
 '''
