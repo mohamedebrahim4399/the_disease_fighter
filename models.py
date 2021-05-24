@@ -318,7 +318,7 @@ class Session(db.Model):
         self.files = files
         self.notification_seen = notification_seen
         self.notification_time = notification_time
-        self.deleted: deleted
+        self.deleted = deleted
         self.patient_id = patient_id
         self.doctor_id = doctor_id
 
