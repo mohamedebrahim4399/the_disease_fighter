@@ -54,7 +54,6 @@ def after_request(response):
     response.headers.add(
         'Access-Control-Allow-Methods',
         'GET, PUT, POST, DELETE, OPTIONS')
-    response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 # ### CORS section
