@@ -1769,7 +1769,7 @@ def add_url():
 
 
 @app.route('/model/brain', methods=['POST'])
-@jwt_required()
+# @jwt_required()
 def get_result_from_brain_model():
     try:
         # Check on the image
@@ -1807,7 +1807,7 @@ def get_result_from_brain_model():
 
 
 @app.route('/model/covid19', methods=['POST'])
-@jwt_required()
+# @jwt_required()
 def get_result_from_covid19_model():
     try:
         # Check on the image
