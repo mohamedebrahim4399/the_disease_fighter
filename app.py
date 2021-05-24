@@ -1768,7 +1768,7 @@ def add_url():
 
 
 @app.route('/model/brain', methods=['POST'])
-@jwt_required()
+# @jwt_required()
 def get_result_from_brain_model():
     try:
         # Check on the image
