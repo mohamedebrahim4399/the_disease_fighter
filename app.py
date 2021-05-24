@@ -40,6 +40,7 @@ setup_db(app)
 
 # Set up CORS
 CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # The url of the client model and the url of the server.
 base_url = "https://thediseasefighter.herokuapp.com/"
