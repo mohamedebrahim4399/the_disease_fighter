@@ -56,27 +56,6 @@ def after_request(response):
         'GET, PUT, POST, DELETE, OPTIONS')
     return response
 
-# ### CORS section
-# @app.after_request
-# def after_request_func(response):
-#     origin = request.headers.get('Origin')
-#     if request.method == 'OPTIONS':
-#         response = make_response()
-#         response.headers.add('Access-Control-Allow-Credentials', 'true')
-#         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-#         response.headers.add('Access-Control-Allow-Headers', 'x-csrf-token')
-#         response.headers.add('Access-Control-Allow-Methods',
-#                             'GET, POST, OPTIONS, PUT, PATCH, DELETE')
-#         if origin:
-#             response.headers.add('Access-Control-Allow-Origin', origin)
-#     else:
-#         response.headers.add('Access-Control-Allow-Credentials', 'true')
-#         if origin:
-#             response.headers.add('Access-Control-Allow-Origin', origin)
-
-#     return response
-# ### end CORS section
-
 
 @app.route('/')
 def index():
@@ -1869,9 +1848,9 @@ def create_appointments(sessions, is_doctor):
     previous_appointments = []
 
     for current_session in sessions:
-        if str(current_date) < str(current_session.date):
+        if str(current_date) < str(current_session.date) and current_session.diagnosis == None:
             future_appointments.append(current_session.format(False, is_doctor))
-        elif str(current_date) == str(current_session.date):
+        elif str(current_date) == str(current_session.date) and current_session.diagnosis == None:
             current_appointments.append(current_session.format(False, is_doctor))
         else:
             previous_appointments.append(current_session.format(False, is_doctor))
