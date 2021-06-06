@@ -345,7 +345,9 @@ class Session(db.Model):
                 'seen': self.notification_seen or False,
                 'doctor_name': doctor.name,
                 "doctor_avatar": "https://thediseasefighter.herokuapp.com/static/" + doctor.avatar,
-                "diagnosis": self.diagnosis
+                "diagnosis": self.diagnosis,
+                'location': doctor.clinic_location,
+                'specialization': Specialization.query.get(doctor.spec_id).name
             } 
 
 
