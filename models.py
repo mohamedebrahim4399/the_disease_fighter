@@ -338,11 +338,14 @@ class Session(db.Model):
     def format(self, notification = False, is_doctor=None):
 
         if notification:
+            doctor = Doctor.query.get(self.doctor_id)
             return {
                 'session_id': self.id,
                 'time': self.notification_time.strftime("%I:%M %p"),
                 'seen': self.notification_seen or False,
-                'doctor_name': Doctor.query.get(self.doctor_id).name
+                'doctor_name': doctor.name,
+                "doctor_avatar": "https://thediseasefighter.herokuapp.com/static/" + doctor.avatar,
+                "diagnosis": self.diagnosis
             } 
 
 
