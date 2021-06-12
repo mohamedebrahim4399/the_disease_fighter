@@ -184,6 +184,33 @@ def login(register_data=None):
         'success': False
     }), 401
 
+@app.route('/email', methods=['POST'])
+def check_email():
+    try:
+        data = request.get_json()
+
+        email = data.get('email')
+        # -----------------------------------------------
+        # if email exists
+        patient = Patient.query.filter_by(email=email).first()
+        doctor = Doctor.query.filter_by(email=email).first()
+
+        if (patient or doctor) is not None:
+            return jsonify({
+                "message": "This email already exists",
+                "error": 200,
+                "success": True
+            })
+
+        return jsonify({
+            "message": "Email Not Found!",
+            "error": 404,
+            "success": False
+        })
+
+    except:
+        abort(422)
+    # -----------------------------------------------
 
 def create_token(id, is_doctor):
     additional_claims = {
