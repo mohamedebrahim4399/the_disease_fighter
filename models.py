@@ -338,8 +338,8 @@ class Session(db.Model):
 
     def format(self, notification = False, is_doctor=None):
 
+        doctor = Doctor.query.get(self.doctor_id)
         if notification:
-            doctor = Doctor.query.get(self.doctor_id)
             return {
                 'session_id': self.id,
                 'time': self.notification_time.strftime("%I:%M %p"),
@@ -374,6 +374,7 @@ class Session(db.Model):
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id,
             'period_id': period_id,
+            'specialization': Specialization.query.get(doctor.spec_id).name,
         }
 
         if not is_doctor:

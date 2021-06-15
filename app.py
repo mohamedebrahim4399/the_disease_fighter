@@ -229,7 +229,7 @@ def verify_data():
 
         if not check_data(email, email_regex):
             return jsonify({
-                    "message": "Invalid Email.",
+                    "message": "Please enter a valid email address.",
                     "error": 422,
                     "success": False
                 })         
@@ -1277,6 +1277,39 @@ def get_one_session(session_id):
             "success": False
         }), 404
 
+@app.route('/sessions/previous')
+@jwt_required()
+def get_previous_sessions():
+    try:
+        claims = get_jwt()
+        if not claims['is_doctor']:
+            return jsonify({
+                "message": "You aren't allowed to open this route",
+                "error": 401,
+                "success": False
+            })
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        
+        sessions = Session.query.filter_by(doctor_id = claims['sub']).all()
+
+        if len(sessions) == 0:
+            return jsonify({
+                "message": "Previous Session Were not found",
+                "error": 404,
+                "success": False
+            })
+
+        previous_sessions = []
+        for session in sessions:
+            if str(current_date) > str(session.date) and session.diagnosis == None:
+                previous_sessions.append(session.format())
+
+        return jsonify({
+            "previous_sessions": previous_sessions,
+            "success": True
+        })
+    except:
+        abort(422)
 
 # filtered sessions => For Doctor only not user
 @app.route('/sessions/filter')
@@ -1317,7 +1350,7 @@ def filter_doctors():
             patient = Patient.query.get(s.patient_id)
             session_obj = {}
             session_obj.update(s.format())
-            session_obj.update({"avatar": patient.avatar})
+            session_obj.update({"avatar": "https://thediseasefighter.herokuapp.com/static/" + patient.avatar})
             session_list.append(session_obj)
 
         return jsonify({
