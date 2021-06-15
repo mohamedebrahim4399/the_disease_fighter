@@ -12,6 +12,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from models import *
+import re
 
 from flask_jwt_extended import (
     create_access_token,
@@ -85,18 +86,6 @@ def register():
     name = data.get('name')
     email = data.get('email')
     password = generate_password_hash(data.get('password'), method="sha256")
-
-    # -----------------------------------------------
-    # if email exists
-    patient = Patient.query.filter_by(email=email).first()
-    doctor = Doctor.query.filter_by(email=email).first()
-    if patient or doctor:
-        return jsonify({
-            "message": "This email already exists",
-            "error": 409,
-            "success": False
-        }), 409
-    # -----------------------------------------------
 
     phone = data.get('phone', None)
     gender = data.get('gender', None)
@@ -207,10 +196,66 @@ def check_email():
             "error": 404,
             "success": False
         })
-
     except:
         abort(422)
     # -----------------------------------------------
+
+
+@app.route('/verify', methods=['POST'])
+def verify_data():
+    try:
+        data = request.get_json()
+
+        email = data.get('email')
+        name = data.get('name')
+        password = data.get('password')
+        # -----------------------------------------------
+        # if email exists
+        patient = Patient.query.filter_by(email=email).first()
+        doctor = Doctor.query.filter_by(email=email).first()
+
+        email_regex = '\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'
+
+        if len(password) < 9:
+            return jsonify({
+                    "message": "Password must be at least 9 digit",
+                    "error": 422,
+                    "success": False
+                })
+
+        if not check(email, email_regex):
+            return jsonify({
+                    "message": "Invalid Email",
+                    "error": 422,
+                    "success": False
+                })         
+
+        if (patient or doctor) is not None:
+            return jsonify({
+                "message": "This email already exists",
+                "error": 200,
+                "success": True
+            })
+
+        return jsonify({
+            "message": "Email Not Found!",
+            "error": 404,
+            "success": False
+        })
+    except:
+        abort(422)
+    # -----------------------------------------------
+
+
+def check(email, regex):
+    # pass the regular expression
+    # and the string in search() method
+    if(re.search(regex, email)):
+        return True
+
+    else:
+        return False
+
 
 def create_token(id, is_doctor):
     additional_claims = {
