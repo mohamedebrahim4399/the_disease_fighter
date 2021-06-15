@@ -271,7 +271,7 @@ class Review(db.Model):
             'session_id': self.session_id,
             'comment': self.comment,
             'stars': self.stars,
-            'avatar': Patient.query.get(self.patient_id).avatar
+            'avatar': "https://thediseasefighter.herokuapp.com/static/" + Patient.query.get(self.patient_id).avatar
         }
 
 
