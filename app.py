@@ -206,15 +206,19 @@ def verify_data():
     try:
         data = request.get_json()
 
-        email = data.get('email')
-        name = data.get('name')
-        password = data.get('password')
+        email = data.get('email', None)
+        name = data.get('name', None)
+        password = data.get('password', None)
         # -----------------------------------------------
         # if email exists
         patient = Patient.query.filter_by(email=email).first()
         doctor = Doctor.query.filter_by(email=email).first()
 
-        email_regex = '\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'
+        if (email or password or name) is None:
+            print("lfjdsalfja")
+            return False
+
+        email_regex = '[^@]+@[^@]+\.[^@]+'
 
         if len(password) < 9:
             return jsonify({
@@ -223,9 +227,9 @@ def verify_data():
                     "success": False
                 })
 
-        if not check(email, email_regex):
+        if not check_data(email, email_regex):
             return jsonify({
-                    "message": "Invalid Email",
+                    "message": "Invalid Email.",
                     "error": 422,
                     "success": False
                 })         
@@ -233,27 +237,31 @@ def verify_data():
         if (patient or doctor) is not None:
             return jsonify({
                 "message": "This email already exists",
-                "error": 200,
-                "success": True
+                "error": 404,
+                "success": False
             })
 
         return jsonify({
-            "message": "Email Not Found!",
-            "error": 404,
-            "success": False
+            "message": "This email is available",
+            "error": 200,
+            "success": True
         })
     except:
         abort(422)
     # -----------------------------------------------
 
 
-def check(email, regex):
+def check_data(email, regex):
     # pass the regular expression
     # and the string in search() method
     if(re.search(regex, email)):
+        print('------------')
+        print('invalid email')
         return True
 
     else:
+        print('-----------')
+        print('else ')
         return False
 
 
