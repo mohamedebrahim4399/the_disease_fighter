@@ -28,7 +28,7 @@ app.config['SECRET_KEY'] = 'secretkeyfordevelopmentonly*fordevelopment'
 # app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this in your code!
 
 
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds = 10)
 
 # Set up upload image
 app.config['UPLOAD_EXTENSIONS'] = ['jpg', 'jpeg', 'png', 'gif']
