@@ -268,12 +268,12 @@ def update_current_user():
                 "success": False
             }), 422
 
-        if "avatar" in data:
-            return jsonify({
-                "message": "You can't update your avatar from this route, You should use /avatar route",
-                "error": 422,
-                "success": False
-            }), 422
+        # if "avatar" in data:
+        #     return jsonify({
+        #         "message": "You can't update your avatar from this route, You should use /avatar route",
+        #         "error": 422,
+        #         "success": False
+        #     }), 422
 
         current_user = ""
         if claims['is_doctor']:
@@ -837,12 +837,6 @@ def get_periods(day_id):
 def get_all_dates(doctor_id):
     claims = get_jwt()
     try:
-        # if claims['is_doctor']:
-        #     return jsonify({
-        #         "message": "You aren't allowed to open this route",
-        #         "error": 403,
-        #         "success": False
-        #     }), 403
         dates = Available_date.query.filter(Available_date.doctor_id == doctor_id).order_by('id').all()
 
         if len(dates) == 0:
