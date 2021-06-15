@@ -1566,6 +1566,7 @@ def add_to_favorite_list(doctor_id):
     data = request.get_json()
     claims = get_jwt()
     try:
+        print("_______________________")
         if claims['is_doctor']:
             return jsonify({
                 "message": "You aren't allowed to open this route",
@@ -1575,6 +1576,15 @@ def add_to_favorite_list(doctor_id):
         patient_id = claims['sub']
         doctor_id = doctor_id
         is_in_favorite_list = data.get('is_in_favorite_list')
+
+        doctor = Favorite.query.filter_by(doctor_id = doctor_id).all()
+
+        if len(doctor) > 0:
+            return jsonify({
+                "message": "You have added this doctor before",
+                "error": 422,
+                "success": False
+            })
 
         if "is_in_favorite_list" not in data:
             return jsonify({
