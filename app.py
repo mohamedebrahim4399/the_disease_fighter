@@ -837,12 +837,12 @@ def get_periods(day_id):
 def get_all_dates(doctor_id):
     claims = get_jwt()
     try:
-        if claims['is_doctor']:
-            return jsonify({
-                "message": "You aren't allowed to open this route",
-                "error": 403,
-                "success": False
-            }), 403
+        # if claims['is_doctor']:
+        #     return jsonify({
+        #         "message": "You aren't allowed to open this route",
+        #         "error": 403,
+        #         "success": False
+        #     }), 403
         dates = Available_date.query.filter(Available_date.doctor_id == doctor_id).order_by('id').all()
 
         if len(dates) == 0:
