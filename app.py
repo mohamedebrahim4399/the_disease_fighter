@@ -1599,6 +1599,8 @@ def create_reviews(session_id):
         )
 
         review.insert()
+        session.update({"notification_seen": True})
+        session.commit()
 
         return jsonify({
             "message": "You have added a review successfully",

@@ -381,8 +381,9 @@ class Session(db.Model):
             doctor = Doctor.query.get(self.doctor_id)
             format_dict.update({"doctor_name": doctor.name, "doctor_avatar": 'https://thediseasefighter.herokuapp.com/static/' + doctor.avatar})
         else:
+            doctor = Doctor.query.get(self.doctor_id)
             patient = Patient.query.get(self.patient_id)
-            format_dict.update({"patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar})
+            format_dict.update({"patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar, 'doctor_phone': doctor.phone})
 
         return format_dict
 
