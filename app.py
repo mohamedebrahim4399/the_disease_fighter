@@ -1795,7 +1795,7 @@ def get_reviews(doctor_id):
         reviews_list = []
         for data in fetch_data:
             reviews_obg = {}
-            reviews_obg.update({"name": data[2], "avatar": data[1], "stars": data[0], "comment": data[3]})
+            reviews_obg.update({"name": data[2], "avatar": "https://thediseasefighter.herokuapp.com/static/" + data[1], "stars": data[0], "comment": data[3]})
             reviews_list.append(reviews_obg)
 
         return jsonify({
