@@ -1045,6 +1045,49 @@ def delete_date(date_id):
         abort(422)
 
 
+@app.route('/doctors/search')
+@jwt_required()
+def search_doctors():
+    claims = get_jwt()
+    data = request.args
+
+    claims = get_jwt()
+    try:
+        if claims['is_doctor']:
+            return jsonify({
+                "message": "You aren't allowed to open this route",
+                "error": 403,
+                "success": False
+            }), 403
+        if "name" not in data:
+            return jsonify({
+                "message": "name is not in body request",
+                "error": 400,
+                "success": False
+            }), 400
+
+        name = data.get('name', None)
+        doctors = Doctor.query.filter(Doctor.name.ilike(name)).all()
+        print(doctors)
+
+        if doctors == []:
+            return jsonify({
+                "message": "There is any doctors",
+                "error": 404,
+                "success": False
+            }), 404
+
+        return jsonify({
+            "doctors": [doctor.format() for doctor in doctors],
+            "Success": True,
+            "total_doctors": len(doctors)
+        })
+    except:
+        abort(422)
+
+
+
+
 # Check the start and end time and make it suitable for storing it in db.
 def check_time(times):
     am_pm = ["am", "pm"]
