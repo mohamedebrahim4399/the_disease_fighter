@@ -377,12 +377,12 @@ class Session(db.Model):
             'specialization': Specialization.query.get(doctor.spec_id).name,
         }
 
+        patient = Patient.query.get(self.patient_id)
         if not is_doctor:
             doctor = Doctor.query.get(self.doctor_id)
-            format_dict.update({"doctor_name": doctor.name, "doctor_avatar": 'https://thediseasefighter.herokuapp.com/static/' + doctor.avatar})
+            format_dict.update({"doctor_name": doctor.name, "doctor_avatar": 'https://thediseasefighter.herokuapp.com/static/' + doctor.avatar, "patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar})
         else:
             doctor = Doctor.query.get(self.doctor_id)
-            patient = Patient.query.get(self.patient_id)
             format_dict.update({"patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar, 'doctor_phone': doctor.phone})
 
         return format_dict
