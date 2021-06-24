@@ -497,6 +497,36 @@ def update_notification(session_id):
     except:
         abort(422)
 
+@app.route('/notifications/unseen')
+@jwt_required()
+def unseen_notifications():
+    claims = get_jwt()
+    try:
+        if claims['is_doctor']:
+            return jsonify({
+                "message": "You aren't allowed to open this route",
+                "error": 403,
+                "success": False
+            }), 403
+
+        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False).all()
+
+        print(notifications)
+
+        if notifications is None:
+            return jsonify({
+                "message": "Unseen Notifications were not found!",
+                "error": 404,
+                "success": False
+            })
+
+        return jsonify({
+            "total_notifications": len(notifications),
+            "success": True
+        })
+
+    except:
+        abort(422)
 
 # ___________ doctor ___________
 def doctor_reviews(doctor_id):
