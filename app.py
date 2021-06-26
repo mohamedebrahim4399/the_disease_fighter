@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, abort, jsonify, session, redirect, url_for, render_template
 from flask_cors import CORS
 from sqlalchemy import text
+from sqlalchemy import literal
 import sqlalchemy
 import json
 from datetime import datetime, timedelta
@@ -1103,7 +1104,8 @@ def search_doctors():
             }), 400
 
         name = data.get('name', None)
-        doctors = Doctor.query.filter(Doctor.name.ilike(name)).all()
+        doctors = Doctor.query.filter(Doctor.name.ilike('%' + name + '%')).all()
+        print(doctors)
         print(doctors)
 
         if doctors == []:
