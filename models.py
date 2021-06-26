@@ -2,8 +2,8 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.elements import SavepointClause
 
-database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
-# database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
+# database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
+database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
 db = SQLAlchemy()
 
 
@@ -336,27 +336,8 @@ class Session(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def format(self, notification = False, is_doctor=None):
-
-        doctor = Doctor.query.get(self.doctor_id)
-        if notification:
-            return {
-                'session_id': self.id,
-                'time': self.notification_time.strftime("%I:%M %p"),
-                'seen': self.notification_seen or False,
-                'doctor_name': doctor.name,
-                "doctor_avatar": "https://thediseasefighter.herokuapp.com/static/" + doctor.avatar,
-                "diagnosis": self.diagnosis,
-                'location': doctor.clinic_location,
-                'specialization': Specialization.query.get(doctor.spec_id).name
-            } 
-
-
-        period_id = None
-        if Period.query.filter_by(session_id = self.id).first():
-            period_id = Period.query.filter_by(session_id = self.id).first().id
-
-        format_dict = {
+    def format(self):
+        return {
             'id': self.id,
             'name': self.name,
             'gender': self.gender,
@@ -373,19 +354,8 @@ class Session(db.Model):
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id,
-            'period_id': period_id,
-            'specialization': Specialization.query.get(doctor.spec_id).name,
         }
 
-        patient = Patient.query.get(self.patient_id)
-        if not is_doctor:
-            doctor = Doctor.query.get(self.doctor_id)
-            format_dict.update({"doctor_name": doctor.name, "doctor_avatar": 'https://thediseasefighter.herokuapp.com/static/' + doctor.avatar, "patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar})
-        else:
-            doctor = Doctor.query.get(self.doctor_id)
-            format_dict.update({"patient_avatar": 'https://thediseasefighter.herokuapp.com/static/' + patient.avatar, 'doctor_phone': doctor.phone})
-
-        return format_dict
 
 
 '''

@@ -70,7 +70,7 @@ def index():
     return html
 
 
-@app.route('/register', methods=["POST"])
+@app.route('/register', methods=["POST"]) 
 def register():
     data = request.get_json()
 
@@ -135,10 +135,10 @@ def login(register_data=None):
 
         if is_doctor:
             doctor = Doctor.query.filter_by(email=email).first()
-            return create_token(doctor.id, True)
+            return create_token(doctor.id, True, doctor)
         else:
             patient = Patient.query.filter_by(email=email).first()
-            return create_token(patient.id, False)
+            return create_token(patient.id, False, patient)
 
     # ----- From Login Page ------------------------------------
     data = request.get_json()
@@ -152,19 +152,23 @@ def login(register_data=None):
 
     email = data.get('email').strip()
 
-    patient = Patient.query.filter_by(email=email).first()
-    doctor = Doctor.query.filter_by(email=email).first()
+    patient = Patient.query.filter(Patient.email.ilike(email)).first()
+    doctor = Doctor.query.filter(Doctor.email.ilike(email)).first()
 
     if (patient or doctor) is None:
-        abort(401)
+        return jsonify({
+            "message": "This is email doesn't exist",
+            "error": 401,
+            "success": False
+        })
 
     user = patient or doctor
 
     if check_password_hash(user.password, data['password']):
         if patient:
-            return create_token(user.id, False)
+            return create_token(user.id, False, user)
         else:
-            return create_token(user.id, True)
+            return create_token(user.id, True, user)
 
     # Password is incorrect
     return jsonify({
@@ -265,13 +269,13 @@ def check_data(email, regex):
         return False
 
 
-def create_token(id, is_doctor):
+def create_token(id, is_doctor, logged_user):
     additional_claims = {
         "is_doctor": is_doctor
     }
     access_token = create_access_token(id, additional_claims=additional_claims)
 
-    return jsonify(access_token=access_token, is_doctor=is_doctor, success=True)
+    return jsonify(access_token=access_token, is_doctor=is_doctor, success=True, logged_user = logged_user.format())
 
 
 # Not Used after not
@@ -408,9 +412,9 @@ def get_all_Notification():
                 "message": "You aren't allowed to open this route",
                 "error": 403,
                 "success": False
-            }), 
+            }) 
 
-        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_time != None, Session.deleted != True).all()
+        notifications = session_queries(claims['is_doctor'], claims['sub'], True)
 
         if len(notifications) == 0:
             return jsonify({
@@ -419,8 +423,10 @@ def get_all_Notification():
                 "success": False
             }), 404
 
+
+
         return jsonify({
-            "notifications": [notification.format(True) for notification in notifications],
+            "notifications": notifications,
             "total_notifications": len(notifications),
             'success': True
         })
@@ -1269,6 +1275,70 @@ def get_day_date(day):
 
     return desired_date
 
+def session_queries(is_doctor, id, notifications=False, session_id=0):
+
+    query = []
+
+    if notifications:
+        query = sqlalchemy.text(
+            f''' select sessions.id as session_id,sessions.diagnosis as diagnosis, sessions.notification_time as time, sessions.notification_seen as seen, doctors.name as doctor_name, doctors.avatar as doctor_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join specializations on specializations.id = doctors.spec_id where sessions.patient_id = {id} and sessions.notification_time is not null and sessions.deleted != true; '''
+        )
+
+        return execute_sql_query(query)
+
+
+    doctor_condition = f"doctors.id = {id}"
+    patient_condition = f"patients.id = {id}"
+
+    if session_id:
+        doctor_condition = f"sessions.id = {session_id}"
+        patient_condition = f"sessions.id = {session_id}"
+
+    if is_doctor:
+        query = sqlalchemy.text(
+            f''' select sessions.*, doctors.phone as doctor_phone, patients.avatar as patient_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join patients on patients.id = sessions.patient_id join specializations on specializations.id = doctors.spec_id where {doctor_condition}; ''')
+
+    else:
+        query = sqlalchemy.text(
+            f''' select sessions.*, doctors.name as doctor_name, doctors.avatar as doctor_avatar, doctors.phone as doctor_phone, patients.avatar as patient_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join patients on patients.id = sessions.patient_id join specializations on specializations.id = doctors.spec_id where {patient_condition} ''')
+
+
+    return execute_sql_query(query)
+
+def execute_sql_query(query):
+    sessions_list = []
+
+    query_result = db.engine.execute(query)
+    fetch_data = query_result.fetchall()
+    columns_name = list(query_result.keys())
+
+
+    for data in fetch_data:
+
+        session_obj = {}
+
+        for column_index in range(len(columns_name)):
+            if (column_index not in [12, 13, 14]):
+                print(columns_name[column_index] == "time")
+                if columns_name[column_index] == "time":
+                    session_obj.update({columns_name[column_index]: str(data[column_index])})
+                elif "avatar" in columns_name[column_index]:
+                    session_obj.update({columns_name[column_index]:"https://thediseasefighter.herokuapp.com/static/" + data[column_index]})
+                elif columns_name[column_index] == 'files':
+                    files = (data[column_index] or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in data[column_index].split(", ")]
+                    session_obj.update({columns_name[column_index]: files})
+                else:
+                    session_obj.update({columns_name[column_index]: data[column_index]})
+
+        period_id = None
+        if Period.query.filter_by(session_id = data[0]).first():
+            period_id = Period.query.filter_by(session_id = data[0]).first().id
+
+        session_obj.update({"period_id": period_id})
+
+        sessions_list.append(session_obj)
+
+    return sessions_list
 
 @app.route('/sessions')
 @jwt_required()
@@ -1278,8 +1348,7 @@ def get_sessions():
     delete_unused_appointment()
 
     if claims['is_doctor']:
-        sessions = Session.query.filter_by(doctor_id=claims['sub']).order_by('id').all()
-
+        sessions = session_queries(claims['is_doctor'], claims['sub'])
         if sessions == []:
             return jsonify({
                 "message": "You don't have any appointments",
@@ -1287,10 +1356,11 @@ def get_sessions():
                 "success": False
             }), 404
 
-        future_appointments, current_appointments, previous_appointments = create_appointments(sessions, claims['is_doctor'])
+
+        future_appointments, current_appointments, previous_appointments = create_appointments(sessions)
 
         return jsonify({
-            'all_appointments': [session.format(False, "is_doctor") for session in sessions],
+            'all_appointments': sessions,
             'future_appointments': future_appointments,
             'current_appointments': current_appointments,
             'previous_appointments': previous_appointments,
@@ -1299,8 +1369,7 @@ def get_sessions():
         })
 
     else:
-
-        sessions = Session.query.filter_by(patient_id=claims['sub']).order_by('id').all()
+        sessions = session_queries(claims['is_doctor'], claims['sub'])
 
         if sessions == []:
             return jsonify({
@@ -1309,7 +1378,7 @@ def get_sessions():
                 "success": False
             }), 404
 
-        future_appointments, current_appointments, previous_appointments = create_appointments(sessions, claims['is_doctor'])
+        future_appointments, current_appointments, previous_appointments = create_appointments(sessions)
 
         return jsonify({
             "future_appointments": future_appointments,
@@ -1326,13 +1395,13 @@ def get_one_session(session_id):
     claims = get_jwt()
     try:
         delete_unused_appointment()
-        current_session = ''
+        session = ''
         if claims['is_doctor']:
-            current_session = Session.query.filter_by(id=session_id, doctor_id=claims['sub']).first()
+            session = session_queries(claims['is_doctor'], claims['sub'], False, session_id)
         else:
-            current_session = Session.query.filter_by(id=session_id, patient_id=claims['sub']).first()
+            session = session_queries(claims['is_doctor'], claims['sub'], False, session_id)
 
-        if current_session is None or current_session == '':
+        if session is None or session == '':
             return jsonify({
                 'message': "This session is not for you.",
                 'error': 403,
@@ -1340,7 +1409,7 @@ def get_one_session(session_id):
             }), 403
 
         return jsonify({
-            'session': current_session.format(False, claims['is_doctor']),
+            'session': session,
             'success': True
         })
     except:
@@ -2031,7 +2100,7 @@ def get_result_from_covid19_model():
 
 # ______________ Global Functions ______________
 
-def create_appointments(sessions, is_doctor):
+def create_appointments(sessions):
     current_date = datetime.now().strftime('%Y-%m-%d')
 
     future_appointments = []
@@ -2039,12 +2108,15 @@ def create_appointments(sessions, is_doctor):
     previous_appointments = []
 
     for current_session in sessions:
-        if str(current_date) < str(current_session.date) and current_session.diagnosis == None:
-            future_appointments.append(current_session.format(False, is_doctor))
-        elif str(current_date) == str(current_session.date) and current_session.diagnosis == None:
-            current_appointments.append(current_session.format(False, is_doctor))
+        print("#############")
+        print(current_session['date'])
+
+        if str(current_date) < str(current_session['date']) and current_session['diagnosis'] == None:
+            future_appointments.append(current_session)
+        elif str(current_date) == str(current_session['date']) and current_session['diagnosis'] == None:
+            current_appointments.append(current_session)
         else:
-            previous_appointments.append(current_session.format(False, is_doctor))
+            previous_appointments.append(current_session)
 
     future_appointments.sort(key=lambda e: e['date'])
 
