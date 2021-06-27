@@ -1,10 +1,14 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
 
-database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
-# database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
-db = SQLAlchemy()
+database_path = "postgresql://{}:{}@{}/{}".format(
+    "mpbbfngyetvwwh",
+    "e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123",
+    "ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432",
+    "d5pp6e2lfl6cgb"
+)
 
+db = SQLAlchemy()
 
 def setup_db(app, database_path=database_path):
     app.config['SQLALCHEMY_DATABASE_URI'] = database_path
@@ -17,8 +21,6 @@ def setup_db(app, database_path=database_path):
 '''
 Patient
 '''
-
-
 class Patient(db.Model):
     __tablename__ = 'patients'
 
@@ -77,8 +79,6 @@ class Patient(db.Model):
 '''
 Doctor
 '''
-
-
 class Doctor(db.Model):
     __tablename__ = 'doctors'
 
@@ -150,8 +150,6 @@ class Doctor(db.Model):
 '''
 Specialization
 '''
-
-
 class Specialization(db.Model):
     __tablename__ = 'specializations'
 
@@ -191,8 +189,6 @@ class Specialization(db.Model):
 '''
 Favorite
 '''
-
-
 class Favorite(db.Model):
     __tablename__ = 'favorites'
 
@@ -232,8 +228,6 @@ class Favorite(db.Model):
 '''
 Review
 '''
-
-
 class Review(db.Model):
     __tablename__ = 'reviews'
 
@@ -275,8 +269,6 @@ class Review(db.Model):
 '''
 Session
 '''
-
-
 class Session(db.Model):
     __tablename__ = 'sessions'
 
@@ -358,8 +350,6 @@ class Session(db.Model):
 '''
 Available Date
 '''
-
-
 class Available_date(db.Model):
     __tablename__ = 'available_dates'
 
@@ -404,8 +394,6 @@ class Available_date(db.Model):
 '''
 Period
 '''
-
-
 class Period(db.Model):
     __tablename__ = 'periods'
 

@@ -1972,6 +1972,7 @@ def update_avatar():
 
         return jsonify({
             "message": "The avatar has been updated successfully",
+            "avatar": current_user.avatar,
             "success": True
         })
     except:
