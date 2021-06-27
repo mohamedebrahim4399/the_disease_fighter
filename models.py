@@ -8,6 +8,8 @@ database_path = "postgresql://{}:{}@{}/{}".format(
     "d5pp6e2lfl6cgb"
 )
 
+# database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
+
 db = SQLAlchemy()
 
 def setup_db(app, database_path=database_path):

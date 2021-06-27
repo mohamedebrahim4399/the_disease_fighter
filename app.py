@@ -417,6 +417,8 @@ def get_all_Notification():
 
         notifications = session_queries(claims['is_doctor'], claims['sub'], True)
 
+        print(notifications)
+
         if len(notifications) == 0:
             return jsonify({
                 "message": "There aren't any Notifications",
@@ -514,7 +516,15 @@ def unseen_notifications():
                 "success": False
             }), 403
 
-        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False).all()
+        # notifications = Session.query.filter(Session.patient_id == claims['sub']).all()
+
+        # print(claims['sub'])
+
+
+
+        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False, Session.deleted == False).all()
+
+        # print(notifications)
 
         if notifications is None:
             return jsonify({
@@ -1279,7 +1289,7 @@ def session_queries(is_doctor, id, notifications=False, session_id=0):
 
     if notifications:
         query = sqlalchemy.text(
-            f''' select sessions.id as session_id,sessions.diagnosis as diagnosis, sessions.notification_time as time, sessions.notification_seen as seen, doctors.name as doctor_name, doctors.avatar as doctor_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join specializations on specializations.id = doctors.spec_id where sessions.patient_id = {id} and sessions.notification_time is not null and sessions.deleted != true order by sessions.id desc'''
+            f''' select sessions.id as session_id,sessions.diagnosis as diagnosis, sessions.notification_time as time, sessions.notification_seen as seen, doctors.name as doctor_name, doctors.avatar as doctor_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join specializations on specializations.id = doctors.spec_id where sessions.patient_id = {id} and sessions.notification_time is not null and sessions.deleted != true order by sessions.id desc;'''
         )
 
         return execute_sql_query(query)
@@ -1310,6 +1320,7 @@ def execute_sql_query(query):
     fetch_data = query_result.fetchall()
     columns_name = list(query_result.keys())
 
+    print(query)
 
     for data in fetch_data:
 
