@@ -1977,7 +1977,7 @@ def update_avatar():
 
         return jsonify({
             "message": "The avatar has been updated successfully",
-            "avatar": current_user.avatar,
+            "avatar": "https://thediseasefighter.herokuapp.com/static/" + current_user.avatar,
             "success": True
         })
     except:
