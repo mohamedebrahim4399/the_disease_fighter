@@ -468,15 +468,7 @@ def update_notification(session_id):
                 "success": False
             })
 
-        if notification.notification_seen:#####################################
-            return jsonify({
-                "message": "You have seen this notification before",
-                "error": 422,
-                "success": False
-            })
-
         if "type" in data:
-            # print(data['type'])
             if data['type'] == 'delete':
                 notification.update({"deleted": True})
                 return jsonify({
@@ -484,6 +476,12 @@ def update_notification(session_id):
                     "success": True
                 })
             elif data['type'] == 'update':
+                if notification.notification_seen:
+                        return jsonify({
+                            "message": "You have seen this notification before",
+                            "error": 422,
+                            "success": False
+                        })
                 notification.update({'notification_seen': True})
                 return jsonify({
                     "message": "The Notification has been updated",
