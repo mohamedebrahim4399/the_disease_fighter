@@ -516,8 +516,6 @@ def unseen_notifications():
 
         notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False).all()
 
-        print(notifications)
-
         if notifications is None:
             return jsonify({
                 "message": "Unseen Notifications were not found!",
@@ -914,7 +912,8 @@ def get_periods(day_id):
             }), 404
 
         return jsonify({
-            "periods": [period.format() for period in periods]
+            "periods": [period.format() for period in periods],
+            "success": True
         })
     except:
         abort(404)
@@ -1086,7 +1085,6 @@ def search_doctors():
     claims = get_jwt()
     data = request.args
 
-    claims = get_jwt()
     try:
         if claims['is_doctor']:
             return jsonify({
@@ -1281,7 +1279,7 @@ def session_queries(is_doctor, id, notifications=False, session_id=0):
 
     if notifications:
         query = sqlalchemy.text(
-            f''' select sessions.id as session_id,sessions.diagnosis as diagnosis, sessions.notification_time as time, sessions.notification_seen as seen, doctors.name as doctor_name, doctors.avatar as doctor_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join specializations on specializations.id = doctors.spec_id where sessions.patient_id = {id} and sessions.notification_time is not null and sessions.deleted != true; '''
+            f''' select sessions.id as session_id,sessions.diagnosis as diagnosis, sessions.notification_time as time, sessions.notification_seen as seen, doctors.name as doctor_name, doctors.avatar as doctor_avatar, specializations.name as specialization from sessions join doctors on sessions.doctor_id = doctors.id join specializations on specializations.id = doctors.spec_id where sessions.patient_id = {id} and sessions.notification_time is not null and sessions.deleted != true order by sessions.id desc'''
         )
 
         return execute_sql_query(query)
@@ -1319,7 +1317,6 @@ def execute_sql_query(query):
 
         for column_index in range(len(columns_name)):
             if (column_index not in [12, 13, 14]):
-                print(columns_name[column_index] == "time")
                 if columns_name[column_index] == "time":
                     session_obj.update({columns_name[column_index]: str(data[column_index])})
                 elif "avatar" in columns_name[column_index]:
@@ -1789,7 +1786,6 @@ def add_to_favorite_list(doctor_id):
     data = request.get_json()
     claims = get_jwt()
     try:
-        print("_______________________")
         if claims['is_doctor']:
             return jsonify({
                 "message": "You aren't allowed to open this route",
