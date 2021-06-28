@@ -1433,7 +1433,8 @@ def get_previous_sessions():
                 "success": False
             })
 
-            print("###############")
+
+        return current_date
 
         previous_sessions = []
         for session in sessions:
