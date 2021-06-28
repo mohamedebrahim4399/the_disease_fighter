@@ -1,8 +1,7 @@
 import os
-from flask import Flask, request, abort, jsonify, session, redirect, url_for, render_template
+from flask import Flask, request, abort, jsonify
 from flask_cors import CORS
 from sqlalchemy import text
-from sqlalchemy import literal
 import sqlalchemy
 import json
 from datetime import datetime, timedelta
@@ -11,13 +10,10 @@ import urllib.request
 import requests
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
 from models import *
 import re
-
 from flask_jwt_extended import (
     create_access_token,
-    get_jwt_identity,
     jwt_required,
     get_jwt,
     JWTManager
@@ -82,7 +78,7 @@ def register():
             'message': 'is_doctor is missing',
             'error': 400,
             'success': False
-        })
+        }), 400
 
     name = data.get('name')
     email = data.get('email')
@@ -210,24 +206,24 @@ def check_email():
 def verify_data():
     try:
         data = request.get_json()
-
         email = data.get('email', None)
         name = data.get('name', None)
         password = data.get('password', None)
-        # -----------------------------------------------
-        # if email exists
         patient = Patient.query.filter_by(email=email).first()
         doctor = Doctor.query.filter_by(email=email).first()
 
-        if (email or password or name) is None:
-            print("lfjdsalfja")
-            return False
+        if (name and email and password) is None:
+            return jsonify({
+                "message": "Missing name, email, or password",
+                "success": False
+            }), 400
 
         email_regex = '[^@]+@[^@]+\.[^@]+'
+        password_regex = "^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
 
-        if len(password) < 9:
+        if not check_data(password, password_regex):
             return jsonify({
-                    "message": "Password must be at least 9 digit",
+                    "message": "Password must be at least eight characters, at least one letter and one number",
                     "error": 422,
                     "success": False
                 })
@@ -253,20 +249,12 @@ def verify_data():
         })
     except:
         abort(422)
-    # -----------------------------------------------
 
 
-def check_data(email, regex):
-    # pass the regular expression
-    # and the string in search() method
-    if(re.search(regex, email)):
-        print('------------')
-        print('invalid email')
+def check_data(text, regex):
+    if(re.search(regex, text)):
         return True
-
     else:
-        print('-----------')
-        print('else ')
         return False
 
 
@@ -294,18 +282,14 @@ def logout():
 def get_current_user():
     claims = get_jwt()
     try:
-        format = ""
         current_user = ""
-
         if claims['is_doctor']:  # this is a doctor
             current_user = Doctor.query.get(claims['sub'])
-            format=current_user.format()
         else:
             current_user = Patient.query.get(claims['sub'])
-            format=current_user.format()
 
         return jsonify({
-            "current_user": format,
+            "current_user": current_user.format(),
             'success': True
         }), 200
     except:
@@ -416,8 +400,6 @@ def get_all_Notification():
             }) 
 
         notifications = session_queries(claims['is_doctor'], claims['sub'], True)
-
-        print(notifications)
 
         if len(notifications) == 0:
             return jsonify({
@@ -2036,25 +2018,18 @@ def add_url():
 
 
 @app.route('/model/brain', methods=['POST'])
-# @jwt_required()
 def get_result_from_brain_model():
     try:
-        # Check on the image
+        # Check the image
         status, result = get_images()
         if not status:
             return result
         filename = result[0]
 
         # Check out the Model Server is running.
-        print('---url before checking ---')
-        print(model_urls)
-
         check(model_urls)
-        print('--url after checking')
-        print(model_urls)
 
         if len(model_urls) == 0:
-            print("The Servers's Model is not wokring")
             return jsonify({
                 "message": "The server's Model is not working",
                 "error": 400,
