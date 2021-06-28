@@ -1434,11 +1434,8 @@ def get_previous_sessions():
             })
 
 
-        
-
         previous_sessions = []
         for session in sessions:
-            return jsonify(current_date = current_date, session_date = session.date)
             if str(current_date) > str(session.date) and session.diagnosis != None:
                 previous_sessions.append(session.format())
 
