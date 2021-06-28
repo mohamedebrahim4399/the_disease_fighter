@@ -1403,7 +1403,7 @@ def get_one_session(session_id):
             "success": False
         }), 404
 
-@app.route('/sessions/previous')
+@app.route('/sessions/previous')#######################################
 @jwt_required()
 def get_previous_sessions():
     try:
@@ -1415,7 +1415,7 @@ def get_previous_sessions():
                 "success": False
             })
         current_date = datetime.now().strftime('%Y-%m-%d')
-        
+
         sessions = Session.query.filter_by(doctor_id = claims['sub']).all()
 
         if len(sessions) == 0:
@@ -1427,7 +1427,7 @@ def get_previous_sessions():
 
         previous_sessions = []
         for session in sessions:
-            if str(current_date) > str(session.date) and session.diagnosis == None:
+            if str(current_date) > str(session.date) and session.diagnosis != None:
                 previous_sessions.append(session.format())
 
         return jsonify({
@@ -2085,8 +2085,6 @@ def create_appointments(sessions):
     previous_appointments = []
 
     for current_session in sessions:
-        print("#############")
-        print(current_session['date'])
 
         if str(current_date) < str(current_session['date']) and current_session['diagnosis'] == None:
             future_appointments.append(current_session)
