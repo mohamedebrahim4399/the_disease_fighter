@@ -1603,7 +1603,7 @@ def update_session(session_id):
             files = ", ".join(data['files'])
             data['files'] = files
 
-        if "diagnosis" in data or "medicines" in data:
+        if "diagnosis" in data or "medicines" in data:###############################################################33333
             notification_time = datetime.now().strftime("%H:%M:%S")[:-3]
             notification_seen = False
             data.update({
@@ -1686,53 +1686,53 @@ def delete_session(session_id):
 @jwt_required()
 def create_reviews(session_id):
     claims = get_jwt()
-    # try:
-    if claims['is_doctor']:
-        return jsonify({
-            "message": "You aren't allowed to open this route",
-            "error": 403,
-            "success": False
-        }), 403
-    data = request.get_json()
+    try:
+        if claims['is_doctor']:
+            return jsonify({
+                "message": "You aren't allowed to open this route",
+                "error": 403,
+                "success": False
+            }), 403
+        data = request.get_json()
 
-    session = Session.query.get(session_id)
-    if session is None:
+        session = Session.query.get(session_id)
+        if session is None:
+            return jsonify({
+                "message": "This session isn't valid",
+                "error": 422,
+                "success": False
+            })
+
+
+        patient_id = claims['sub']
+        session_id = session_id
+        comment = data.get('comment', None)
+        stars = data.get('stars', None)
+
+        if (comment and stars) is None:
+            return jsonify({
+                "message": "You should send comment and star in the body request",
+                "error": 400,
+                "success": False
+            }), 400
+
+        review = Review(
+            patient_id=patient_id,
+            session_id=session_id,
+            comment=comment,
+            stars=stars,
+
+        )
+
+        review.insert()
+        session.update({"notification_seen": True})
+
         return jsonify({
-            "message": "This session isn't valid",
-            "error": 422,
-            "success": False
+            "message": "You have added a review successfully",
+            'success': True
         })
-
-
-    patient_id = claims['sub']
-    session_id = session_id
-    comment = data.get('comment', None)
-    stars = data.get('stars', None)
-
-    if (comment and stars) is None:
-        return jsonify({
-            "message": "You should send comment and star in the body request",
-            "error": 400,
-            "success": False
-        }), 400
-
-    review = Review(
-        patient_id=patient_id,
-        session_id=session_id,
-        comment=comment,
-        stars=stars,
-
-    )
-
-    review.insert()
-    session.update({"notification_seen": True})
-
-    return jsonify({
-        "message": "You have added a review successfully",
-        'success': True
-    })
-    # except:
-        # abort(422)
+    except:
+        abort(422)
 
 
 @app.route('/sessions/<int:session_id>/files', methods=['PATCH'])
