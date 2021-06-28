@@ -498,13 +498,7 @@ def unseen_notifications():
                 "success": False
             }), 403
 
-        # notifications = Session.query.filter(Session.patient_id == claims['sub']).all()
-
-        # print(claims['sub'])
-
-
-
-        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False, Session.deleted == False).all()
+        notifications = Session.query.filter(Session.patient_id == claims['sub'], Session.notification_seen == False, Session.deleted == False, Session.diagnosis != None).all()
 
         # print(notifications)
 
