@@ -1085,7 +1085,15 @@ def search_doctors():
                 "success": False
             }), 400
 
-        name = data.get('name', None)
+        name = data.get('name', None).strip()
+
+        if len(name) == 0:
+            return jsonify({
+                "message": "You should write a valid text",
+                "error": 401,
+                "success": False
+            }), 401
+
         doctors = Doctor.query.filter(Doctor.name.ilike('%' + name + '%')).all()
         print(doctors)
         print(doctors)
