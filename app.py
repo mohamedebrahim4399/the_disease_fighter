@@ -1623,6 +1623,9 @@ def update_session(session_id):
         current_session.update(data)
 
         if "day" in data or "time" in data or "am_pm" in data:
+            
+            return jsonify(period_id = isinstance(data.get("period_id"), int), previous_period_id = isinstance(data.get("previous_period_id"), int))
+
             session_id = session_id
             if "period_id" in data and "previous_period_id" in data:
                 period_id = data.get("period_id")
