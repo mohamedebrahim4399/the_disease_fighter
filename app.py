@@ -1094,9 +1094,22 @@ def search_doctors():
                 "success": False
             }), 401
 
+
         doctors = Doctor.query.filter(Doctor.name.ilike('%' + name + '%')).all()
-        print(doctors)
-        print(doctors)
+
+        doctor_list = []
+
+        for doctor in doctors:
+            reviews = doctor_reviews(doctor.id)
+            doctor_obj = {}
+            doctor_obj.update(doctor.format())
+            doctor_obj.update(reviews)
+            doctor_obj.update(favorite_list(doctor.id, claims['sub']))
+            doctor_list.append(doctor_obj)
+
+
+
+
 
         if doctors == []:
             return jsonify({
@@ -1106,7 +1119,7 @@ def search_doctors():
             }), 404
 
         return jsonify({
-            "doctors": [doctor.format() for doctor in doctors],
+            "doctors": doctor_list,
             "Success": True,
             "total_doctors": len(doctors)
         })
