@@ -1,16 +1,10 @@
-import os
 from flask_sqlalchemy import SQLAlchemy
 
-database_path = "postgresql://{}:{}@{}/{}".format(
-    "mpbbfngyetvwwh",
-    "e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123",
-    "ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432",
-    "d5pp6e2lfl6cgb"
-)
-
+# database_path = "postgresql://mpbbfngyetvwwh:e6b72d158aba28dddaa1463877f9d6232aa84d65838800d5d4192ff5f1269123@ec2-52-19-164-214.eu-west-1.compute.amazonaws.com:5432/d5pp6e2lfl6cgb"
 # database_path = "postgresql://{}:{}@{}/{}".format("postgres", "mohamed", "localhost:5432", "api")
-
+database_path = "mysql+mysqlconnector://diseasefighter:mohamed159716@diseasefighter.mysql.pythonanywhere-services.com/diseasefighter$api"
 db = SQLAlchemy()
+
 
 def setup_db(app, database_path=database_path):
     app.config['SQLALCHEMY_DATABASE_URI'] = database_path
@@ -23,18 +17,20 @@ def setup_db(app, database_path=database_path):
 '''
 Patient
 '''
+
+
 class Patient(db.Model):
     __tablename__ = 'patients'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
-    email = db.Column(db.String(), unique=True)
-    password = db.Column(db.String())
-    phone = db.Column(db.String())
-    location = db.Column(db.String())
-    gender = db.Column(db.String())
-    about = db.Column(db.String())
-    avatar = db.Column(db.String(), default="default.png")
+    name = db.Column(db.String(30))
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(350))
+    phone = db.Column(db.String(15))
+    location = db.Column(db.String(50))
+    gender = db.Column(db.String(10))
+    about = db.Column(db.String(350))
+    avatar = db.Column(db.String(250), default = "default.png")
     dob = db.Column(db.Date())
 
     def __repr__(self):
@@ -73,7 +69,7 @@ class Patient(db.Model):
             'location': self.location,
             'gender': self.gender,
             'about': self.about,
-            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
+            'avatar': "http://diseasefighter.pythonanywhere.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d')
         }
 
@@ -81,19 +77,21 @@ class Patient(db.Model):
 '''
 Doctor
 '''
+
+
 class Doctor(db.Model):
     __tablename__ = 'doctors'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
-    email = db.Column(db.String(), unique=True)
-    password = db.Column(db.String())
-    phone = db.Column(db.String())
-    clinic_location = db.Column(db.String())
-    gender = db.Column(db.String())
-    x_y = db.Column(db.String())
-    about = db.Column(db.String())
-    avatar = db.Column(db.String(), default="default.png")
+    name = db.Column(db.String(30))
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(350))
+    phone = db.Column(db.String(15))
+    clinic_location = db.Column(db.String(100))
+    gender = db.Column(db.String(10))
+    x_y = db.Column(db.String(50))
+    about = db.Column(db.String(350))
+    avatar = db.Column(db.String(250), default="default.png")
     dob = db.Column(db.Date())
     spec_id = db.Column(db.Integer, db.ForeignKey('specializations.id', ondelete='CASCADE'))
 
@@ -131,6 +129,8 @@ class Doctor(db.Model):
         if self.spec_id:
             specialization = Specialization.query.get(self.spec_id) and Specialization.query.get(self.spec_id).format()
 
+        print(specialization)
+
         return {
             'id': self.id,
             'name': self.name,
@@ -140,7 +140,7 @@ class Doctor(db.Model):
             'gender': self.gender,
             'x_y': self.x_y,
             'about': self.about,
-            'avatar': "https://thediseasefighter.herokuapp.com/static/" + self.avatar,
+            'avatar': "http://diseasefighter.pythonanywhere.com/static/" + self.avatar,
             'dob': self.dob and self.dob.strftime('%Y-%m-%d'),
             'spec_id': self.spec_id,
             'available_dates': [available_date.format() for available_date in
@@ -152,12 +152,14 @@ class Doctor(db.Model):
 '''
 Specialization
 '''
+
+
 class Specialization(db.Model):
     __tablename__ = 'specializations'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
-    image = db.Column(db.String())
+    name = db.Column(db.String(20))
+    image = db.Column(db.String(150))
 
     def __repr__(self):
         return f'<Specialization id: {self.id} name: {self.name} image: {self.image}>'
@@ -180,7 +182,7 @@ class Specialization(db.Model):
     def format(self):
         image = self.image
         if image[:3].lower() != 'htt':
-            image = "https://thediseasefighter.herokuapp.com/static/specializations/" + self.image
+            image = "http://diseasefighter.pythonanywhere.com/static/specializations/" + self.image
         return {
             'id': self.id,
             'name': self.name,
@@ -191,6 +193,8 @@ class Specialization(db.Model):
 '''
 Favorite
 '''
+
+
 class Favorite(db.Model):
     __tablename__ = 'favorites'
 
@@ -223,19 +227,21 @@ class Favorite(db.Model):
         return {
             'patient_id': self.patient_id,
             'doctor_id': self.doctor_id,
-            'is_in_favorite_list': self.is_in_favorite_list,
+            'is_in_favorite_list': bool(self.is_in_favorite_list),
         }
 
 
 '''
 Review
 '''
+
+
 class Review(db.Model):
     __tablename__ = 'reviews'
 
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'))
     session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), primary_key=True)
-    comment = db.Column(db.String())
+    comment = db.Column(db.String(250))
     stars = db.Column(db.Integer)
 
     def __repr__(self):
@@ -264,28 +270,29 @@ class Review(db.Model):
             'session_id': self.session_id,
             'comment': self.comment,
             'stars': self.stars,
-            'avatar': "https://thediseasefighter.herokuapp.com/static/" + Patient.query.get(self.patient_id).avatar
         }
 
 
 '''
 Session
 '''
+
+
 class Session(db.Model):
     __tablename__ = 'sessions'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
-    gender = db.Column(db.String())
-    date = db.Column(db.String())
-    day = db.Column(db.String())
-    time = db.Column(db.Time())
+    name = db.Column(db.String(30))
+    gender = db.Column(db.String(10))
+    date = db.Column(db.String(15))
+    day = db.Column(db.String(15))
+    time = db.Column(db.Time(10))
     am_pm = db.Column(db.String(5))
-    phone = db.Column(db.String())
-    comment = db.Column(db.String())
-    diagnosis = db.Column(db.String())
-    medicines = db.Column(db.String())
-    files = db.Column(db.String())
+    phone = db.Column(db.String(15))
+    comment = db.Column(db.String(250))
+    diagnosis = db.Column(db.String(250))
+    medicines = db.Column(db.String(250))
+    files = db.Column(db.String(100))
     notification_seen = db.Column(db.Boolean)
     notification_time = db.Column(db.Time())
     deleted = db.Column(db.Boolean)
@@ -340,7 +347,7 @@ class Session(db.Model):
             'comment': self.comment,
             'diagnosis': self.diagnosis,
             'medicines': self.medicines,
-            'files': (self.files or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in
+            'files': (self.files or []) and ["https://diseasefighter.pythonanywhere.com/static/" + file for file in
                                              self.files.split(", ")],
             # This line will update when you deploy the app.
             'patient_id': self.patient_id,
@@ -352,13 +359,15 @@ class Session(db.Model):
 '''
 Available Date
 '''
+
+
 class Available_date(db.Model):
     __tablename__ = 'available_dates'
 
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.String())
-    end_time = db.Column(db.String())
-    day = db.Column(db.String())
+    start_time = db.Column(db.String(50))
+    end_time = db.Column(db.String(50))
+    day = db.Column(db.String(20))
     doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id', ondelete='CASCADE'))
 
     def __repr__(self):
@@ -396,11 +405,13 @@ class Available_date(db.Model):
 '''
 Period
 '''
+
+
 class Period(db.Model):
     __tablename__ = 'periods'
 
     id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.String())
+    time = db.Column(db.String(20))
     is_available = db.Column(db.Boolean, default=False)
     available_date_id = db.Column(db.Integer, db.ForeignKey('available_dates.id', ondelete='CASCADE'))
     session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='SET NULL'), nullable=True)
@@ -429,7 +440,7 @@ class Period(db.Model):
         return {
             'id': self.id,
             'time': self.time,
-            'is_available': self.is_available,
+            'is_available': bool(self.is_available),
             'available_date_id': self.available_date_id,
             'session_id': self.session_id
         }

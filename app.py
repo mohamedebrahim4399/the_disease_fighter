@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, session, redirect, url_for, render_template
 from flask_cors import CORS
 from sqlalchemy import text
 import sqlalchemy
@@ -10,10 +10,13 @@ import urllib.request
 import requests
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 from models import *
 import re
+
 from flask_jwt_extended import (
     create_access_token,
+    get_jwt_identity,
     jwt_required,
     get_jwt,
     JWTManager
@@ -40,7 +43,7 @@ setup_db(app)
 CORS(app)
 
 # The url of the client model and the url of the server.
-base_url = "https://thediseasefighter.herokuapp.com/"
+base_url = "http://diseasefighter.pythonanywhere.com/"
 model_urls = []
 
 
@@ -67,7 +70,7 @@ def index():
     return html
 
 
-@app.route('/register', methods=["POST"]) 
+@app.route('/register', methods=["POST"])
 def register():
     data = request.get_json()
 
@@ -233,7 +236,7 @@ def verify_data():
                     "message": "Please enter a valid email address.",
                     "error": 422,
                     "success": False
-                })         
+                })
 
         if (patient or doctor) is not None:
             return jsonify({
@@ -271,7 +274,7 @@ def create_token(id, is_doctor, logged_user):
 @app.route("/logout")
 def logout():
     return ({
-        "message": "Clear the access token from yours to logout😊😊. Please don't use this route again😢"
+        "message": "Clear the access token from yours to logout Please don't use this route again"
     })
 
 
@@ -397,7 +400,7 @@ def get_all_Notification():
                 "message": "You aren't allowed to open this route",
                 "error": 403,
                 "success": False
-            }) 
+            })
 
         notifications = session_queries(claims['is_doctor'], claims['sub'], True)
 
@@ -534,7 +537,7 @@ def doctor_reviews(doctor_id):
         count = count + 1
 
         if len(avatars) <= 2:
-            avatars.append(f"https://thediseasefighter.herokuapp.com/static/{data[1]}")
+            avatars.append(f"http://diseasefighter.pythonanywhere.com/static/{data[1]}")
 
     if not count == 0:
         rates = int(stars / count)
@@ -1327,10 +1330,12 @@ def execute_sql_query(query):
             if (column_index not in [12, 13, 14]):
                 if columns_name[column_index] == "time":
                     session_obj.update({columns_name[column_index]: str(data[column_index])})
+                elif columns_name[column_index] == "seen":
+                    session_obj.update({columns_name[column_index]: bool(data[column_index])})
                 elif "avatar" in columns_name[column_index]:
-                    session_obj.update({columns_name[column_index]:"https://thediseasefighter.herokuapp.com/static/" + data[column_index]})
+                    session_obj.update({columns_name[column_index]:"http://diseasefighter.pythonanywhere.com/static/" + data[column_index]})
                 elif columns_name[column_index] == 'files':
-                    files = (data[column_index] or []) and ["https://thediseasefighter.herokuapp.com/static/" + file for file in data[column_index].split(", ")]
+                    files = (data[column_index] or []) and ["http://diseasefighter.pythonanywhere.com/static/" + file for file in data[column_index].split(", ")]
                     session_obj.update({columns_name[column_index]: files})
                 else:
                     session_obj.update({columns_name[column_index]: data[column_index]})
@@ -1498,7 +1503,7 @@ def filter_doctors():
             patient = Patient.query.get(s.patient_id)
             session_obj = {}
             session_obj.update(s.format())
-            session_obj.update({"avatar": "https://thediseasefighter.herokuapp.com/static/" + patient.avatar})
+            session_obj.update({"avatar": "http://diseasefighter.pythonanywhere.com/static/" + patient.avatar})
             session_list.append(session_obj)
 
         return jsonify({
@@ -1805,7 +1810,7 @@ def add_to_favorite_list(doctor_id):
         doctor_id = doctor_id
         is_in_favorite_list = data.get('is_in_favorite_list')
 
-        doctor = Favorite.query.filter_by(doctor_id = doctor_id).all()
+        doctor = Favorite.query.filter_by(doctor_id = doctor_id, patient_id = claims['sub']).all()
 
         if len(doctor) > 0:
             return jsonify({
@@ -1869,7 +1874,7 @@ def get_all_favorite_doctors():
 
         for data in fetch_data:
             doctor_obj = {}
-            doctor_obj.update({"id": data[0], "name": data[1], "avatar": data[2], "clinic_location": data[3], "is_in_favorite_list": data[4]})
+            doctor_obj.update({"id": data[0], "name": data[1], "avatar": "https://diseasefighter.pythonanywhere.com/static/" + data[2], "clinic_location": data[3], "is_in_favorite_list": bool(data[4])})
 
             doctor_obj.update(doctor_reviews(data[0]))
 
@@ -1894,7 +1899,7 @@ def update_favorites_doctors(doctor_id):
             "error": 403,
             "success": False
         }), 403
-    favorites = Favorite.query.filter_by(doctor_id=doctor_id).first()
+    favorites = Favorite.query.filter_by(doctor_id = doctor_id, patient_id = claims['sub']).first()
 
     if favorites is None:
         return jsonify({
@@ -1941,7 +1946,7 @@ def get_reviews(doctor_id):
         reviews_list = []
         for data in fetch_data:
             reviews_obg = {}
-            reviews_obg.update({"name": data[2], "avatar": "https://thediseasefighter.herokuapp.com/static/" + data[1], "stars": data[0], "comment": data[3]})
+            reviews_obg.update({"name": data[2], "avatar": "http://diseasefighter.pythonanywhere.com/static/" + data[1], "stars": data[0], "comment": data[3]})
             reviews_list.append(reviews_obg)
 
         return jsonify({
@@ -1975,7 +1980,7 @@ def update_avatar():
 
         return jsonify({
             "message": "The avatar has been updated successfully",
-            "avatar": "https://thediseasefighter.herokuapp.com/static/" + current_user.avatar,
+            "avatar": "http://diseasefighter.pythonanywhere.com/static/" + current_user.avatar,
             "success": True
         })
     except:
@@ -2041,6 +2046,10 @@ def get_result_from_brain_model():
         if not status:
             return result
         filename = result[0]
+        if len(filename) >= 50:
+            filename = filename.split('.')
+            filename[0] = filename[0][-43:]
+            filename = '.'.join(filename)
 
         # Check out the Model Server is running.
         check(model_urls)
