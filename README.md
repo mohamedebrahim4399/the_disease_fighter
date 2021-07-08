@@ -68,13 +68,12 @@
 
 ## Project Framework Repositories 
  - <b>UI / UX</b> <br> https://github.com/mohamedebrahim4399/api_documention
- - <b>Back End</b> <br> https://github.com/mohamedebrahim4399/TheDiseaseFighter
+ - <b>Mobile Application </b> <br> https://github.com/magdyebrahim24/the_disease_fighter
 - <b>Machine Learning</b> <br> https://github.com/alaahendam/AI-project
 - <b>WebSite</b> <br> https://github.com/Mariam-wael22/code.git
 
 <br><hr><br>
 
-## API Documentation
 
-[Basic Data](Documentation/README.md#APIDocumentation)
+## [API Documentation](Documentation/README.md#APIDocumentation)
 
